@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+.rolagem {
+  position: relative;
+  width: 100%;
+  height: 250vh;
+}
+
+.comeco {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9);
+}
+
+.fundo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* letra escondida dentro da máscara até o gsap subir ela */
+.mascara {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+.conteudo {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+.palavra {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.fundo h2 {
+  margin: 0;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  line-height: 0.85;
+  letter-spacing: -0.01em;
+  font-size: clamp(4rem, 16vw, 13rem);
+  color: #e2231a;
+}
+
+.linha2 {
+  display: block;
+  margin-top: 0.12em;
+}
+
+.touros {
+  position: absolute;
+  top: 30.37%;
+  left: 34.74%;
+  width: 30.16%;
+  height: 20.56%;
+  z-index: 10; /* abaixo do modelo 3D (.modelo tem z-index: 30) */
+}
+
+.redbull {
+  /* fixed (não mais absolute): agora é renderizado fora da .comeco, como irmão
+     do .modelo, então precisa se posicionar relativo à tela, não a um pai local */
+  position: fixed;
+  top: 60.17%;
+  left: 32.82%;
+  width: 36.2%;
+  height: 15.46%;
+  z-index: 40; /* acima do modelo 3D (.modelo tem z-index: 30) */
+  pointer-events: none;
+}
+
+.imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(5.5);
+}
+
+.lateral {
+  position: absolute;
+  bottom: 22%;
+  right: 5%;
+  width: min(420px, 34%);
+  z-index: 5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.lateral p {
+  margin: 0;
+  color: #e2231a;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.4rem, 2.4vw, 2.1rem);
+  line-height: 1.05;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .lateral {
+    width: min(280px, 60%);
+    bottom: 16%;
+    right: 4%;
+  }
+}
