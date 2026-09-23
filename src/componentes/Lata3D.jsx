@@ -97,6 +97,90 @@ const INCLINACAO_TORTA_X_CAN2 = 0.32
 const INCLINACAO_TORTA_Z_CAN2 = -0.4
 const DURACAO_GIRO_HOVER_CAN2 = 0.9
 
+// --- can_3 (verde) e can_4 (pêssego): vivem dentro dos 2 quadrados
+// secundários (esquerda/direita) que só aparecem na fase 2 do scroll da
+// energeticos (revelacaoProgressRef), acompanhando a posição deles na tela ---
+const ESCALA_LATERAL_BASE = 4.2 // escala "de referência" das latas laterais
+const FATOR_ESCALA_CAN3 = 1 // ajuste até o can_3_green.glb ficar do tamanho visual desejado
+const FATOR_ESCALA_CAN4 = 1 // idem, pro can_4_peach.glb
+const ESCALA_FINAL_CAN3 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN3
+const ESCALA_FINAL_CAN4 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN4
+
+const ROTACAO_Y_CAN3 = 0 // "frente" do can_3 — ajuste até ficar de frente pra câmera
+const ROTACAO_Y_CAN4 = 0 // idem, pro can_4
+
+const OFFSET_Y_CAN3 = 0 // ajuste fino de altura dentro do quadrado esquerdo
+const OFFSET_Y_CAN4 = 0 // ajuste fino de altura dentro do quadrado direito
+
+// segue o quadrado (que já está se movendo via GSAP) com uma leve suavização
+const SUAVIDADE_LATERAL_POSICAO = 0.08
+const SUAVIDADE_LATERAL_ESCALA = 0.07
+
+const AMPLITUDE_FLUTUACAO_LATERAL_Y = 0.04
+const VELOCIDADE_FLUTUACAO_LATERAL_Y = 0.6
+
+// hover nos quadros secundários (esquerda/direita) — mesma animação do hover
+// do quadro-menu central: uma volta completa em Y e termina torta (X + Z)
+const VOLTA_HOVER_LATERAL = Math.PI * 2 // 360°
+const INCLINACAO_TORTA_X_LATERAL = 0.32
+const INCLINACAO_TORTA_Z_LATERAL = -0.4
+const DURACAO_GIRO_HOVER_LATERAL = 0.9
+
+// fração da LARGURA DO PRÓPRIO QUADRADO usada como deslocamento de entrada da
+// lata lateral: 0 = nasce já centralizada (sem deslizar), ~0.5 = nasce bem na
+// borda do quadrado, do seu próprio lado, e desliza de lá pra dentro — assim
+// a entrada fica contida dentro/perto do quadrado, não vindo de fora da tela
+const FRACAO_ENTRADA_LATERAL = 0.45
+
+// projeta o centro (em tela) de um elemento HTML qualquer pro mesmo plano 3D
+// em que as latas vivem — versão genérica de obterPosicaoAlvoQueda, usada
+// pelas latas laterais (que seguem os quadros secundários, não o quadro-menu)
+function obterPosicaoElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorSaida) {
+  const elemento = elementoRef?.current
+  if (!elemento || !camera || !size) return null
+
+  const retangulo = elemento.getBoundingClientRect()
+  if (retangulo.width === 0 && retangulo.height === 0) return null
+
+  const centroX = retangulo.left + retangulo.width / 2
+  const centroY = retangulo.top + retangulo.height / 2
+
+  const ndcX = (centroX / size.width) * 2 - 1
+  const ndcY = -(centroY / size.height) * 2 + 1
+
+  raycaster.setFromCamera({ x: ndcX, y: ndcY }, camera)
+  const encontrou = raycaster.ray.intersectPlane(plano, vetorSaida)
+
+  return encontrou ? vetorSaida : null
+}
+
+// mede a largura (em unidades 3D, no mesmo plano das latas) de um elemento
+// HTML qualquer, projetando a borda esquerda e a borda direita dele — usada
+// só pra calibrar o deslocamento de entrada das latas laterais, em vez de um
+// valor fixo "no chute" que não bate com o tamanho real do quadrado na tela
+function obterLarguraElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorAuxiliar) {
+  const elemento = elementoRef?.current
+  if (!elemento || !camera || !size) return null
+
+  const retangulo = elemento.getBoundingClientRect()
+  if (retangulo.width === 0 && retangulo.height === 0) return null
+
+  const centroY = retangulo.top + retangulo.height / 2
+  const ndcY = -(centroY / size.height) * 2 + 1
+
+  const ndcXEsquerdo = (retangulo.left / size.width) * 2 - 1
+  raycaster.setFromCamera({ x: ndcXEsquerdo, y: ndcY }, camera)
+  if (!raycaster.ray.intersectPlane(plano, vetorAuxiliar)) return null
+  const xEsquerdo = vetorAuxiliar.x
+
+  const ndcXDireito = (retangulo.right / size.width) * 2 - 1
+  raycaster.setFromCamera({ x: ndcXDireito, y: ndcY }, camera)
+  if (!raycaster.ray.intersectPlane(plano, vetorAuxiliar)) return null
+  const xDireito = vetorAuxiliar.x
+
+  return Math.abs(xDireito - xEsquerdo)
+}
+
 function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoProgressRef, quadroRef }) {
   const { scene } = useGLTF('/3d/can_1_original.glb')
   const grupoRef = useRef(null)
@@ -494,7 +578,174 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref }) {
   )
 }
 
-function Lata3D({ scrollProgressRef, energeticosProgressRef, revelacaoProgressRef, quadroRef, hoverCan2Ref }) {
+// lata que vive dentro de um dos quadrados secundários (esquerda ou direita),
+// que só se revelam na fase 2 do scroll da energeticos. Segue a posição do
+// próprio quadrado na tela (que já está se movendo via GSAP) projetando o
+// centro dele pro mesmo plano 3D em que as outras latas vivem, e cresce a
+// partir de 0 junto com o progresso da revelação
+function LataLateral({
+  caminhoModelo,
+  elementoRef,
+  elementoCentralRef,
+  revelacaoProgressRef,
+  escalaFinal,
+  rotacaoYFrente,
+  offsetY,
+  sentidoEntrada,
+  hoverRef,
+}) {
+  const { scene } = useGLTF(caminhoModelo)
+  const grupoRef = useRef(null)
+  const grupoEscalaRef = useRef(null)
+  // grupo próprio só pra rotação do hover, separado da rotação "de repouso"
+  // que o grupoRef já carrega — mesma ideia da lata do meio (can_2)
+  const grupoGiroHoverRef = useRef(null)
+  const hoverAnteriorRef = useRef(false)
+  // lembra se, no frame anterior, ela já estava "livre" do quadro central —
+  // usado só pra detectar a borda exata em que ela passa a poder aparecer
+  const jaLivreRef = useRef(false)
+  // guarda o progresso da revelação no frame anterior, só pra saber se o
+  // scroll está avançando ou voltando — o "salto" de entrada só pode
+  // acontecer indo pra frente; voltando, ela só precisa encolher de volta
+  // (senão, qualquer oscilação do scroll perto da borda faz ela "pular" de
+  // novo pro ponto de entrada, e não voltar suavemente pro centro)
+  const progressoAnteriorRef = useRef(0)
+
+  const raycaster = useMemo(() => new THREE.Raycaster(), [])
+  const planoQueda = useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANO_PROFUNDIDADE_QUEDA),
+    []
+  )
+  const alvo = useMemo(() => new THREE.Vector3(), [])
+
+  useEffect(() => {
+    if (!grupoRef.current) return
+    grupoRef.current.rotation.set(0, rotacaoYFrente, 0)
+    if (grupoEscalaRef.current) grupoEscalaRef.current.scale.setScalar(0)
+    jaLivreRef.current = false
+  }, [rotacaoYFrente])
+
+  useFrame((state) => {
+    if (!grupoRef.current || !grupoEscalaRef.current) return
+
+    const progressoRevelacao = revelacaoProgressRef?.current ?? 0
+    const tempo = state.clock.getElapsedTime()
+    const oscilacaoY = Math.sin(tempo * VELOCIDADE_FLUTUACAO_LATERAL_Y) * AMPLITUDE_FLUTUACAO_LATERAL_Y
+
+    const posicaoMundo = obterPosicaoElementoNoMundo(
+      elementoRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      alvo
+    )
+
+    // o canvas 3D é uma única camada por cima de TODOS os quadrados (é por
+    // isso que a lata do meio "sai" na frente do quadro-menu). Então, mesmo
+    // com a lata lateral no lugar certo, se o quadrado dela ainda estiver
+    // sobrepondo o quadro do meio (no início da revelação, os 2 nascem
+    // exatamente empilhados no mesmo lugar) ela apareceria por cima do
+    // quadro central. Por isso ela só fica "livre" quando o próprio
+    // retângulo (em tela) já não sobrepõe mais o retângulo do quadro central
+    const retLateral = elementoRef?.current?.getBoundingClientRect()
+    const retCentral = elementoCentralRef?.current?.getBoundingClientRect()
+    const prontoParaComparar =
+      !!retLateral &&
+      !!retCentral &&
+      !(retLateral.width === 0 && retLateral.height === 0) &&
+      !(retCentral.width === 0 && retCentral.height === 0)
+    const livreDoCentro =
+      prontoParaComparar && (retLateral.right <= retCentral.left || retLateral.left >= retCentral.right)
+
+    // só considera "entrando" (avançando) se o progresso realmente cresceu
+    // desde o frame anterior — evita disparar a entrada de novo por causa de
+    // ruído/scrub quando o scroll está, na real, voltando
+    const avancando = progressoRevelacao > progressoAnteriorRef.current
+
+    if (posicaoMundo) {
+      const alvoX = posicaoMundo.x
+      const alvoY = posicaoMundo.y + offsetY + oscilacaoY
+
+      if (livreDoCentro && !jaLivreRef.current && avancando) {
+        // acabou de ficar livre agora: nasce um pouco mais pra fora, no
+        // sentido do próprio lado (esquerda entra vindo de mais à esquerda,
+        // direita vindo de mais à direita) — mas só uma fração da largura
+        // real do próprio quadrado, pra entrada ficar contida perto/dentro
+        // dele, não vindo de fora da tela. A partir daqui o lerp abaixo
+        // cuida de deslizá-la de fora pra dentro do quadrado
+        const larguraCaixaMundo =
+          obterLarguraElementoNoMundo(elementoRef, state.camera, state.size, raycaster, planoQueda, alvo) ?? 0
+        grupoRef.current.position.x = alvoX + larguraCaixaMundo * FRACAO_ENTRADA_LATERAL * sentidoEntrada
+        grupoRef.current.position.y = alvoY
+      } else {
+        grupoRef.current.position.x += (alvoX - grupoRef.current.position.x) * SUAVIDADE_LATERAL_POSICAO
+        grupoRef.current.position.y += (alvoY - grupoRef.current.position.y) * SUAVIDADE_LATERAL_POSICAO
+      }
+    }
+
+    jaLivreRef.current = livreDoCentro
+    progressoAnteriorRef.current = progressoRevelacao
+
+    // hover do próprio quadrado secundário: só dispara a animação na
+    // transição (borda de subida ou descida), nunca a cada frame — mesma
+    // lógica do hover da lata do meio (can_2)
+    const hoverAtual = hoverRef?.current ?? false
+    if (hoverAtual !== hoverAnteriorRef.current && grupoGiroHoverRef.current) {
+      hoverAnteriorRef.current = hoverAtual
+      gsap.killTweensOf(grupoGiroHoverRef.current.rotation)
+
+      if (hoverAtual) {
+        gsap.to(grupoGiroHoverRef.current.rotation, {
+          y: `+=${VOLTA_HOVER_LATERAL}`,
+          x: INCLINACAO_TORTA_X_LATERAL,
+          z: INCLINACAO_TORTA_Z_LATERAL,
+          duration: DURACAO_GIRO_HOVER_LATERAL,
+          ease: 'power2.inOut',
+        })
+      } else {
+        gsap.to(grupoGiroHoverRef.current.rotation, {
+          y: `-=${VOLTA_HOVER_LATERAL}`,
+          x: 0,
+          z: 0,
+          duration: DURACAO_GIRO_HOVER_LATERAL,
+          ease: 'power2.inOut',
+        })
+      }
+    }
+
+    // até ficar livre do quadro central, fica travada em escala 0 ("escondida
+    // atrás" dele); depois disso cresce acompanhando o progresso da revelação
+    const fracaoAlvo = livreDoCentro ? progressoRevelacao : 0
+    const fracaoAtual = grupoEscalaRef.current.scale.x
+    const novaFracao = fracaoAtual + (fracaoAlvo - fracaoAtual) * SUAVIDADE_LATERAL_ESCALA
+    grupoEscalaRef.current.scale.setScalar(novaFracao)
+  })
+
+  return (
+    <group ref={grupoRef}>
+      <group ref={grupoEscalaRef}>
+        <group ref={grupoGiroHoverRef}>
+          <Center>
+            <primitive object={scene} scale={escalaFinal} />
+          </Center>
+        </group>
+      </group>
+    </group>
+  )
+}
+
+function Lata3D({
+  scrollProgressRef,
+  energeticosProgressRef,
+  revelacaoProgressRef,
+  quadroRef,
+  quadroEsquerdaRef,
+  quadroDireitaRef,
+  hoverCan2Ref,
+  hoverCan3Ref,
+  hoverCan4Ref,
+}) {
   const mouseRef = useRef({ x: 0, y: 0 })
   const progressoPadraoRef = useRef(0)
 
@@ -535,6 +786,30 @@ function Lata3D({ scrollProgressRef, energeticosProgressRef, revelacaoProgressRe
 
           <Lata2 energeticosProgressRef={energeticosProgressRef} hoverCan2Ref={hoverCan2Ref} />
 
+          <LataLateral
+            caminhoModelo="/3d/can_3_green.glb"
+            elementoRef={quadroEsquerdaRef}
+            elementoCentralRef={quadroRef}
+            revelacaoProgressRef={revelacaoProgressRef}
+            escalaFinal={ESCALA_FINAL_CAN3}
+            rotacaoYFrente={ROTACAO_Y_CAN3}
+            offsetY={OFFSET_Y_CAN3}
+            sentidoEntrada={-1}
+            hoverRef={hoverCan3Ref}
+          />
+
+          <LataLateral
+            caminhoModelo="/3d/can_4_peach.glb"
+            elementoRef={quadroDireitaRef}
+            elementoCentralRef={quadroRef}
+            revelacaoProgressRef={revelacaoProgressRef}
+            escalaFinal={ESCALA_FINAL_CAN4}
+            rotacaoYFrente={ROTACAO_Y_CAN4}
+            offsetY={OFFSET_Y_CAN4}
+            sentidoEntrada={1}
+            hoverRef={hoverCan4Ref}
+          />
+
           <Environment preset="city" />
         </Suspense>
       </Canvas>
@@ -545,5 +820,7 @@ function Lata3D({ scrollProgressRef, energeticosProgressRef, revelacaoProgressRe
 useGLTF.preload('/3d/can_1_original.glb')
 useGLTF.preload('/3d/can_2_blue.glb')
 useGLTF.preload('/3d/aviao.glb')
+useGLTF.preload('/3d/can_3_green.glb')
+useGLTF.preload('/3d/can_4_peach.glb')
 
 export default Lata3D

@@ -5,21 +5,27 @@ import './energeticos.css'
 
 gsap.registerPlugin(ScrollTrigger)
 
-// a seção tem 2 fases dentro do mesmo scroll pinado:
-// 1) 0 -> FASE_QUEDA_FIM: a lata cai e pousa no quadro-menu (igual antes)
-// 2) FASE_QUEDA_FIM -> 1: os textos saem pros lados, a lata afunda/some e os
-//    2 quadrados escondidos atrás do quadro-menu se revelam pra esquerda/direita
 const FASE_QUEDA_FIM = 0.55
 
-function Energeticos({ quadroRef, energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref }) {
+function Energeticos({
+  quadroRef,
+  quadroEsquerdaRef,
+  quadroDireitaRef,
+  energeticosProgressRef,
+  revelacaoProgressRef,
+  hoverCan2Ref,
+  hoverCan3Ref,
+  hoverCan4Ref,
+}) {
   const rolagemRef = useRef(null)
   const pinRef = useRef(null)
   const botaoRef = useRef(null)
   const colunaEsquerdaRef = useRef(null)
   const colunaDireitaRef = useRef(null)
-  const quadroEsquerdaRef = useRef(null)
-  const quadroDireitaRef = useRef(null)
   const [pousou, setPousou] = useState(false)
+  // só depois que os quadrados secundários já estão totalmente revelados
+  // (mesmo critério do "pousou" da lata central) é que o hover deles passa a valer
+  const [revelado, setRevelado] = useState(false)
 
   useEffect(() => {
     if (!rolagemRef.current || !pinRef.current) return
@@ -54,6 +60,13 @@ function Energeticos({ quadroRef, energeticosProgressRef, revelacaoProgressRef, 
             hoverCan2Ref.current = false
           }
 
+          const jaRevelado = progressoRevelacao >= 0.98
+          setRevelado(jaRevelado)
+          if (!jaRevelado) {
+            if (hoverCan3Ref) hoverCan3Ref.current = false
+            if (hoverCan4Ref) hoverCan4Ref.current = false
+          }
+
           // textos: esquerda sai pra esquerda, direita sai pra direita
           gsap.set(colunaEsquerdaRef.current, {
             xPercent: progressoRevelacao * -130,
@@ -79,7 +92,7 @@ function Energeticos({ quadroRef, energeticosProgressRef, revelacaoProgressRef, 
     }, rolagemRef)
 
     return () => ctx.revert()
-  }, [energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref])
+  }, [energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref, hoverCan3Ref, hoverCan4Ref])
 
   // pequeno "aceno" no botão ao clicar, só decorativo
   const aoClicarBotao = () => {
@@ -105,12 +118,27 @@ function Energeticos({ quadroRef, energeticosProgressRef, revelacaoProgressRef, 
               <p>Cafeína, Taurina, Vitaminas do complexo B, Açúcares</p>
             </div>
           </div>
-
-          {/* pilha: o quadro-menu (alvo da queda da lata) na frente, e 2
-              quadrados escondidos atrás que se revelam pros lados na fase 2 */}
           <div className="pilha-quadros">
-            <div ref={quadroEsquerdaRef} className="quadro-secundario esquerda" />
-            <div ref={quadroDireitaRef} className="quadro-secundario direita" />
+            <div
+              ref={quadroEsquerdaRef}
+              className="quadro-secundario esquerda"
+              onMouseEnter={() => {
+                if (revelado && hoverCan3Ref) hoverCan3Ref.current = true
+              }}
+              onMouseLeave={() => {
+                if (hoverCan3Ref) hoverCan3Ref.current = false
+              }}
+            />
+            <div
+              ref={quadroDireitaRef}
+              className="quadro-secundario direita"
+              onMouseEnter={() => {
+                if (revelado && hoverCan4Ref) hoverCan4Ref.current = true
+              }}
+              onMouseLeave={() => {
+                if (hoverCan4Ref) hoverCan4Ref.current = false
+              }}
+            />
             <div
               ref={quadroRef}
               className={`quadro-menu${pousou ? ' pousou' : ''}`}

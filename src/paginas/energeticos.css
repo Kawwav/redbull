@@ -169,6 +169,9 @@
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   opacity: 0;
   will-change: transform, opacity;
+  pointer-events: auto;
+  cursor: pointer;
+  transition: box-shadow 0.4s ease, background-color 0.4s ease;
 }
 
 .quadro-secundario.esquerda {
@@ -177,6 +180,18 @@
 
 .quadro-secundario.direita {
   z-index: 2;
+}
+
+/* mesmo hover do quadro-menu (fundo muda de cor + anel de sombra), só que
+   cada lado com a cor do próprio energético: verde pro can_3, pêssego pro can_4 */
+.quadro-secundario.esquerda:hover {
+  background-color: #2f9e44;
+  box-shadow: 0 0 0 8px rgba(47, 158, 68, 0.22), 0 4px 18px rgba(0, 0, 0, 0.18);
+}
+
+.quadro-secundario.direita:hover {
+  background-color: #ffb385;
+  box-shadow: 0 0 0 8px rgba(255, 179, 133, 0.28), 0 4px 18px rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 900px) {
