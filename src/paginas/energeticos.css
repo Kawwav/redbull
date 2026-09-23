@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap');
+
 .energeticos {
   position: relative;
   width: 100%;
@@ -92,29 +94,34 @@
   background: #c81c14;
 }
 
-/* pilha com o quadro principal na frente e os 2 secundários escondidos atrás */
+/* pilha com o quadro principal na frente e os 2 secundários escondidos atrás —
+   420px de foto + 62px da faixa do nome embaixo */
 .pilha-quadros {
   position: relative;
   width: 420px;
-  height: 420px;
+  height: 482px;
 }
 
-/* alvo da queda da lata, centralizado na tela */
+/* alvo da queda da lata, centralizado na tela — moldura única que engloba a
+   foto (em cima) e a faixa com o nome (embaixo), sem diminuir a área da foto */
 .quadro-menu {
   position: relative;
   z-index: 3;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   border: 2px solid #1a1a1a;
   border-radius: 18px;
+  overflow: hidden; /* corta a metade das imagens de canto que fica pra fora */
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
-  overflow: hidden; /* corta a metade das imagens de canto que fica pra fora */
   transition: box-shadow 0.4s ease, transform 0.4s ease, background-color 0.4s ease;
 }
 
 .quadro-menu.pousou {
+  --cor-hover: #1a56db;
   box-shadow: 0 0 0 8px rgba(226, 35, 26, 0.18), 0 4px 18px rgba(0, 0, 0, 0.18);
   transform: scale(1.03);
   /* só depois de pousada a lata 2 (can_2) que o quadrado vira "clicável" */
@@ -123,8 +130,64 @@
 
 /* hover só existe depois que a lata já pousou ali dentro */
 .quadro-menu.pousou:hover {
-  background-color: #1a56db;
   box-shadow: 0 0 0 8px rgba(26, 86, 219, 0.22), 0 4px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* área da foto: ocupa todo o espaço restante (mesmo tamanho de antes) —
+   é aqui que mora o fundo colorido e o círculo de hover */
+.foto-polaroid {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  background: #fafafa;
+  overflow: hidden;
+}
+
+.foto-polaroid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--cor-hover, transparent);
+  clip-path: circle(0% at var(--origem-x, 50%) var(--origem-y, 50%));
+  transition: clip-path 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.quadro-menu.pousou:hover .foto-polaroid::before {
+  clip-path: circle(150% at var(--origem-x, 50%) var(--origem-y, 50%));
+  transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+
+/* faixa embaixo da foto, com o nome da lata e um "+" do lado direito */
+.legenda-cartao {
+  flex-shrink: 0;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 1.2rem;
+  background: #fff;
+  border-top: 2px solid #1a1a1a;
+}
+
+.nome-lata {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mais-cartao {
+  flex-shrink: 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #1a1a1a;
 }
 
 /* imagens dos cantos: o centro delas fica exatamente em cima do canto do
@@ -132,6 +195,7 @@
    overflow: hidden acima) — só aparecem no hover, junto com o fundo azul */
 .cantor-imagem {
   position: absolute;
+  z-index: 1;
   width: 42%;
   height: 42%;
   object-fit: cover;
@@ -156,41 +220,52 @@
   opacity: 1;
 }
 
-/* quadrados escondidos atrás do quadro-menu, revelados na fase 2 do scroll */
+/* quadrados escondidos atrás do quadro-menu, revelados na fase 2 do scroll —
+   mesma estrutura: foto em cima (tamanho normal) + faixa do nome embaixo */
 .quadro-secundario {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
   border: 2px solid #1a1a1a;
   border-radius: 18px;
+  overflow: hidden;
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   opacity: 0;
   will-change: transform, opacity;
   pointer-events: auto;
   cursor: pointer;
-  transition: box-shadow 0.4s ease, background-color 0.4s ease;
+  transition: box-shadow 0.4s ease;
+}
+
+/* mesmo círculo do quadro-menu: nasce no ponto do cursor e se expande até
+   cobrir a foto inteira */
+.quadro-secundario:hover .foto-polaroid::before {
+  clip-path: circle(150% at var(--origem-x, 50%) var(--origem-y, 50%));
+  transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
 .quadro-secundario.esquerda {
   z-index: 1;
+  --cor-hover: #2f9e44;
 }
 
 .quadro-secundario.direita {
   z-index: 2;
+  --cor-hover: #ffb385;
 }
 
 /* mesmo hover do quadro-menu (fundo muda de cor + anel de sombra), só que
    cada lado com a cor do próprio energético: verde pro can_3, pêssego pro can_4 */
 .quadro-secundario.esquerda:hover {
-  background-color: #2f9e44;
   box-shadow: 0 0 0 8px rgba(47, 158, 68, 0.22), 0 4px 18px rgba(0, 0, 0, 0.18);
 }
 
 .quadro-secundario.direita:hover {
-  background-color: #ffb385;
   box-shadow: 0 0 0 8px rgba(255, 179, 133, 0.28), 0 4px 18px rgba(0, 0, 0, 0.18);
 }
 
@@ -211,7 +286,12 @@
 
   .quadro-menu,
   .quadro-secundario {
-    border-radius: 14px;
+    border-radius: 6px;
+    padding: 5% 5% 16%;
+  }
+
+  .legenda-polaroid {
+    font-size: 1.15rem;
   }
 
   .pilha-quadros {

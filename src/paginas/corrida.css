@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+.corrida {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+.retangulo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 48%;
+  background-color: #0b0b0b;
+  z-index: 1;
+}
+
+.texto-corrida {
+  position: absolute;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 7%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5%;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.texto-corrida h2 {
+  margin: 0;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
+  font-size: 140px;
+  color: #e2231a;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* modelomc laren*/
+.carro-modelo {
+  position: absolute;
+  top: 17.2%;
+  left: -5.2%;
+  width: 42%;
+  height: 55%;
+  z-index: 5;
+  pointer-events: none;
+  animation: correndo-esquerda 4.5s ease-in-out 0.8s infinite;
+}
+
+.carro-modelo canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* modelo ferrari */
+.carro-modelo-centro {
+  position: absolute;
+  top: 17%;
+  left: 47%;
+  width: 42%;
+  height: 55%;
+  z-index: 6;
+  pointer-events: none;
+  animation: correndo-centro 4.5s ease-in-out 1.6s infinite;
+}
+
+.carro-modelo-centro canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Red Bull */
+.carro-modelo-direita {
+  position: absolute;
+  top: 17.6%;
+  right: -1%;
+  width: 42%;
+  height: 55%;
+  z-index: 5;
+  pointer-events: none;
+  animation: correndo-direita 4.5s ease-in-out 2.4s infinite;
+}
+
+.carro-modelo-direita canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* simula cada carro "correndo no lugar": fica na mesma posição geral, mas
+   balança bem devagar e suave para frente/trás (esquerda/direita na tela).
+   cada carro tem um delay diferente pra não balançarem todos sincronizados */
+@keyframes correndo-esquerda {
+  0%,
+  100% {
+    transform: translateX(-2.5%);
+  }
+  50% {
+    transform: translateX(2.5%);
+  }
+}
+
+@keyframes correndo-centro {
+  0%,
+  100% {
+    transform: translateX(calc(-50% - 2.5%));
+  }
+  50% {
+    transform: translateX(calc(-50% + 2.5%));
+  }
+}
+
+@keyframes correndo-direita {
+  0%,
+  100% {
+    transform: translateX(2.5%);
+  }
+  50% {
+    transform: translateX(-2.5%);
+  }
+}

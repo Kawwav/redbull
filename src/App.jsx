@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import Comeco from './paginas/comeco.jsx'
 import Energeticos from './paginas/energeticos.jsx'
+import Corrida from './paginas/corrida.jsx'
 import Lata3D from './componentes/Lata3D.jsx'
 
 function App() {
@@ -35,6 +36,8 @@ function App() {
         hoverCan3Ref={hoverCan3Ref}
         hoverCan4Ref={hoverCan4Ref}
       />
+
+      <Corrida />
 
       {mostrarLata && (
         <Lata3D

@@ -128,7 +128,10 @@ function Energeticos({
               onMouseLeave={() => {
                 if (hoverCan3Ref) hoverCan3Ref.current = false
               }}
-            />
+            >
+              <div className="foto-polaroid" />
+              <p className="legenda-polaroid">Red Bull Sugarfree</p>
+            </div>
             <div
               ref={quadroDireitaRef}
               className="quadro-secundario direita"
@@ -138,7 +141,10 @@ function Energeticos({
               onMouseLeave={() => {
                 if (hoverCan4Ref) hoverCan4Ref.current = false
               }}
-            />
+            >
+              <div className="foto-polaroid" />
+              <p className="legenda-polaroid">Red Bull Red Edition</p>
+            </div>
             <div
               ref={quadroRef}
               className={`quadro-menu${pousou ? ' pousou' : ''}`}
@@ -150,18 +156,21 @@ function Energeticos({
                 if (hoverCan2Ref) hoverCan2Ref.current = false
               }}
             >
-              <div className="camada-hover">
-                <img
-                  src=""
-                  alt=""
-                  className="cantor-imagem canto-superior-direito"
-                />
-                <img
-                  src=""
-                  alt=""
-                  className="cantor-imagem canto-inferior-esquerdo"
-                />
+              <div className="foto-polaroid">
+                <div className="camada-hover">
+                  <img
+                    src=""
+                    alt=""
+                    className="cantor-imagem canto-superior-direito"
+                  />
+                  <img
+                    src=""
+                    alt=""
+                    className="cantor-imagem canto-inferior-esquerdo"
+                  />
+                </div>
               </div>
+              <p className="legenda-polaroid">Red Bull Energy</p>
             </div>
           </div>
 

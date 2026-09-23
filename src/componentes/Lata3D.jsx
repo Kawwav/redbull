@@ -479,7 +479,7 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
 // segunda lata: some no topo da tela e cai até pousar no lugar em que a
 // primeira lata ficava em repouso, no mesmo ritmo em que a primeira cai
 // rumo ao quadro-menu (mesmo progressoQueda / energeticosProgressRef)
-function Lata2({ energeticosProgressRef, hoverCan2Ref }) {
+function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
   const { scene } = useGLTF('/3d/can_2_blue.glb')
   const grupoRef = useRef(null)
   const grupoEscalaRef = useRef(null)
@@ -487,6 +487,17 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref }) {
   // que o grupoRef já carrega — assim uma não briga com a outra
   const grupoGiroHoverRef = useRef(null)
   const hoverAnteriorRef = useRef(false)
+
+  // usados pra projetar a posição REAL do .quadro-menu na tela (em vez de um
+  // alvo fixo) — assim, quando a seção "energeticos" despina (scroll indo
+  // pra "corrida") e o quadro sai do lugar, a lata acompanha e some junto,
+  // em vez de ficar flutuando fixa por cima da seção seguinte
+  const raycaster = useMemo(() => new THREE.Raycaster(), [])
+  const planoQueda = useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANO_PROFUNDIDADE_QUEDA),
+    []
+  )
+  const alvoMundo = useMemo(() => new THREE.Vector3(), [])
 
   useEffect(() => {
     if (!grupoRef.current) return
@@ -503,7 +514,7 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref }) {
     }
   }, [])
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!grupoRef.current || !grupoEscalaRef.current) return
 
     const progressoQueda = energeticosProgressRef?.current ?? 0
@@ -515,13 +526,28 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref }) {
       Math.max(0, (progressoQueda - LIMIAR_INICIO_QUEDA_CAN2) / (1 - LIMIAR_INICIO_QUEDA_CAN2))
     )
 
-    // desce do topo da tela até o antigo lugar de repouso da lata 1 (com o
-    // pequeno offset pra encaixar no quadrado do meio)
-    const alvoY = gsap.utils.interpolate(
-      QUEDA_CAN2_Y_INICIAL,
-      POSICAO_Y_FINAL + OFFSET_Y_CAN2,
-      progressoCan2
+    // desce do topo da tela até o lugar real do .quadro-menu na tela — em vez
+    // de um alvo fixo, projeta a posição atual do elemento (que pode estar
+    // pinado, parado no meio de uma transição de pin, ou já despinado e
+    // saindo de tela) pro mesmo plano 3D em que a lata vive. Assim ela
+    // "gruda" no quadrado o tempo todo, inclusive quando ele sai da tela
+    const posicaoQuadro = obterPosicaoElementoNoMundo(
+      quadroRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      alvoMundo
     )
+
+    const alvoYPousado = posicaoQuadro ? posicaoQuadro.y + OFFSET_Y_CAN2 : POSICAO_Y_FINAL + OFFSET_Y_CAN2
+    const alvoXPousado = posicaoQuadro ? posicaoQuadro.x : 0
+
+    const alvoY = gsap.utils.interpolate(QUEDA_CAN2_Y_INICIAL, alvoYPousado, progressoCan2)
+    const alvoX = gsap.utils.interpolate(0, alvoXPousado, progressoCan2)
+
+    grupoRef.current.position.x +=
+      (alvoX - grupoRef.current.position.x) * SUAVIDADE_QUEDA_CAN2_POSICAO
     grupoRef.current.position.y +=
       (alvoY - grupoRef.current.position.y) * SUAVIDADE_QUEDA_CAN2_POSICAO
 
@@ -784,7 +810,11 @@ function Lata3D({
             energeticosProgressRef={energeticosProgressRef}
           />
 
-          <Lata2 energeticosProgressRef={energeticosProgressRef} hoverCan2Ref={hoverCan2Ref} />
+          <Lata2
+            energeticosProgressRef={energeticosProgressRef}
+            hoverCan2Ref={hoverCan2Ref}
+            quadroRef={quadroRef}
+          />
 
           <LataLateral
             caminhoModelo="/3d/can_3_green.glb"
