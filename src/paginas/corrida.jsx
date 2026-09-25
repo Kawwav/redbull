@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, Center, Environment } from '@react-three/drei'
 import * as THREE from 'three'
@@ -216,6 +216,17 @@ const CORTINA_DELAY = 0.1
 const CORTINA_DURACAO = PISTA_PAUSA_FINAL - CORTINA_DELAY
 const CORTINA_FIM = PISTA_INICIO + PISTA_DURACAO + PISTA_PAUSA_FINAL
 
+// limiares de xPercent do .corrida-cortina a partir dos quais cada carro (e
+// a pista) já está TOTALMENTE coberto por ela. a cortina cobre a tela da
+// direita pra esquerda: no xPercent X, ela cobre a faixa [X%, 100%] da tela.
+// um elemento só está 100% coberto quando sua borda esquerda (em % da tela)
+// é >= X — por isso cada carro (em posições diferentes) tem seu próprio
+// limiar, calculado a partir da posição/largura dele no corrida.css
+const CORTINA_LIMIAR_CARRO_DIREITA = 59 // .carro-modelo-direita (right: -1%, width 42%)
+const CORTINA_LIMIAR_CARRO_CENTRO = 47 // .carro-modelo-centro (left: 47%)
+const CORTINA_LIMIAR_CARRO_ESQUERDA = 1 // .carro-modelo (left: -5.2%, já ocupa a borda da tela)
+const CORTINA_LIMIAR_PISTA = 1 // .retangulo ocupa a largura toda da tela
+
 const ESPACO_ZOOM_DURACAO = 0.75
 const ESPACO_ZOOM_ESCALA = 2.6
 const RESTO_FADE_FRACAO = 0.6
@@ -296,7 +307,15 @@ const BRASIL_TRANSICAO_DURACAO = 0.3
 const NUVENS_SAIDA_INICIO = NUVENS_FIM + BRASIL_TRANSICAO_DURACAO
 const NUVENS_SAIDA_DURACAO = ESPACO_ZOOM_DURACAO
 
-const DURACAO_TOTAL = NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * (1 + NUVENS_ATRASO_MAX)
+const DURACAO_TOTAL_SEM_GALERIA = NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * (1 + NUVENS_ATRASO_MAX)
+
+// trecho de rolagem extra, reservado só pra deslizar a galeria de pessoas do
+// brasil.jsx pra cima conforme o usuário continua rolando a página (rolagem
+// real, a mesma que controla o resto da cena — não um scroll interno isolado)
+const GALERIA_INICIO = DURACAO_TOTAL_SEM_GALERIA
+const GALERIA_DURACAO = 1.4
+
+const DURACAO_TOTAL = DURACAO_TOTAL_SEM_GALERIA + GALERIA_DURACAO
 
 const cena = {
   elevacao: ELEVACAO_INICIAL,
@@ -474,6 +493,15 @@ function Corrida() {
   const nuvensExtraRef = useRef([])
   nuvensExtraRef.current = []
   const brasilRef = useRef(null)
+  const galeriaListaRef = useRef(null)
+
+  // controla se os <Canvas> 3D dos carros e os detalhes animados da pista
+  // ainda são renderizados. eles só desmontam quando a cortina (o "espaço"
+  // vindo da direita) já os cobre de verdade — pra não pesar o site com 3
+  // canvases WebGL e animações CSS infinitas rodando escondidos atrás dela
+  const [carrosVisiveis, setCarrosVisiveis] = useState({ esquerda: true, centro: true, direita: true })
+  const [pistaVisivel, setPistaVisivel] = useState(true)
+  const visibilidadeCortinaRef = useRef({ esquerda: true, centro: true, direita: true, pista: true })
 
   useEffect(() => {
     if (!corridaRef.current || !textoRef.current) return
@@ -500,6 +528,36 @@ function Corrida() {
           pin: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
+          onUpdate: () => {
+            if (!cortinaRef.current) return
+            // lê o xPercent real (já animado pelo gsap, com o easing da
+            // cortina) em vez de recalcular, pra saber exatamente quanto da
+            // tela já está coberto neste frame
+            const xAtual = gsap.getProperty(cortinaRef.current, 'xPercent')
+
+            const novoEstado = {
+              esquerda: xAtual > CORTINA_LIMIAR_CARRO_ESQUERDA,
+              centro: xAtual > CORTINA_LIMIAR_CARRO_CENTRO,
+              direita: xAtual > CORTINA_LIMIAR_CARRO_DIREITA,
+              pista: xAtual > CORTINA_LIMIAR_PISTA,
+            }
+            const anterior = visibilidadeCortinaRef.current
+
+            if (
+              novoEstado.esquerda !== anterior.esquerda ||
+              novoEstado.centro !== anterior.centro ||
+              novoEstado.direita !== anterior.direita ||
+              novoEstado.pista !== anterior.pista
+            ) {
+              visibilidadeCortinaRef.current = novoEstado
+              setCarrosVisiveis({
+                esquerda: novoEstado.esquerda,
+                centro: novoEstado.centro,
+                direita: novoEstado.direita,
+              })
+              setPistaVisivel(novoEstado.pista)
+            }
+          },
         },
       })
 
@@ -734,6 +792,28 @@ function Corrida() {
           NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * nuvem.atraso
         )
       })
+
+      // --- galeria de pessoas (dentro do brasil.jsx): depois que as nuvens
+      // já saíram por completo e a cena do brasil está 100% visível, o
+      // usuário continua rolando a página normalmente (não é um scroll
+      // isolado dentro de uma caixinha) e essa rolagem real desliza a lista
+      // de 30 fotos pra cima, revelando as de baixo aos poucos ---
+      if (galeriaListaRef.current) {
+        tl.to(
+          galeriaListaRef.current,
+          {
+            y: () => {
+              const lista = galeriaListaRef.current
+              const viewport = lista?.parentElement
+              if (!lista || !viewport) return 0
+              return -Math.max(0, lista.scrollHeight - viewport.clientHeight)
+            },
+            ease: 'none',
+            duration: GALERIA_DURACAO,
+          },
+          GALERIA_INICIO
+        )
+      }
     }, corridaRef)
 
     return () => {
@@ -748,18 +828,22 @@ function Corrida() {
   return (
     <section ref={corridaRef} className="corrida">
       <div ref={retanguloRef} className="retangulo">
-        <div className="pista-detalhe pista-asfalto" />
-        <svg
-          className="pista-detalhe pista-svg"
-          viewBox="0 0 1000 1000"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path className="pista-kerb-branco" d={PISTA_CAMINHO} />
-          <path className="pista-kerb-vermelho" d={PISTA_CAMINHO} />
-          <path className="pista-rua" d={PISTA_CAMINHO} />
-          <path className="pista-linha-central" d={PISTA_CAMINHO} />
-        </svg>
+        {pistaVisivel && (
+          <>
+            <div className="pista-detalhe pista-asfalto" />
+            <svg
+              className="pista-detalhe pista-svg"
+              viewBox="0 0 1000 1000"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path className="pista-kerb-branco" d={PISTA_CAMINHO} />
+              <path className="pista-kerb-vermelho" d={PISTA_CAMINHO} />
+              <path className="pista-rua" d={PISTA_CAMINHO} />
+              <path className="pista-linha-central" d={PISTA_CAMINHO} />
+            </svg>
+          </>
+        )}
       </div>
 
       <div ref={textoRef} className="texto-corrida">
@@ -767,57 +851,63 @@ function Corrida() {
       </div>
 
       <div className="carro-modelo">
-        <Canvas
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: true }}
-          style={{ background: 'transparent' }}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="esquerda" />
+        {carrosVisiveis.esquerda && (
+          <Canvas
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ background: 'transparent' }}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="esquerda" />
 
-          <Suspense fallback={null}>
-            <Carro />
-            <Environment preset="city" />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <Carro />
+              <Environment preset="city" />
+            </Suspense>
+          </Canvas>
+        )}
       </div>
 
       <div className="carro-modelo-centro">
-        <Canvas
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: true }}
-          style={{ background: 'transparent' }}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="centro" />
+        {carrosVisiveis.centro && (
+          <Canvas
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ background: 'transparent' }}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="centro" />
 
-          <Suspense fallback={null}>
-            <Ferrari />
-            <Environment preset="city" />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <Ferrari />
+              <Environment preset="city" />
+            </Suspense>
+          </Canvas>
+        )}
       </div>
 
       <div className="carro-modelo-direita">
-        <Canvas
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: true }}
-          style={{ background: 'transparent' }}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="direita" />
+        {carrosVisiveis.direita && (
+          <Canvas
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: true }}
+            style={{ background: 'transparent' }}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="direita" />
 
-          <Suspense fallback={null}>
-            <RedBullCarro />
-            <Environment preset="city" />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <RedBullCarro />
+              <Environment preset="city" />
+            </Suspense>
+          </Canvas>
+        )}
       </div>
 
       <div ref={pilotosRef} className="pilotos">
@@ -827,7 +917,7 @@ function Corrida() {
       </div>
 
       <div ref={cortinaRef} className="corrida-cortina">
-        <Brasil brasilRef={brasilRef} />
+        <Brasil brasilRef={brasilRef} galeriaListaRef={galeriaListaRef} />
 
         <img ref={terraRef} className="cortina-imagem cortina-terra" src="/espaço/terra.webp" alt="Terra" />
         <img ref={nuvem1Ref} className="cortina-imagem cortina-nuvem1" src="/imagens/nuvem1.webp" alt="Nuvem" />

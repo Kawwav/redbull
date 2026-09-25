@@ -42,6 +42,7 @@ const SUAVIDADE_POUSO_SUMIR = 0.025 // bem mais lenta: dá aquele "delay" suave 
 const ESCALA_POUSO_NO_QUADRO = 6.2 // escala final da lata já "dentro" do quadro — maior que a caixa de propósito, pra "vazar" um pouco pra fora
 const OFFSET_Y_POUSO = -0.19 // desloca a lata pra baixo no ponto final (dentro do quadro-menu)
 const LIMIAR_TRAVAR_POUSO = 0.97 // a partir daqui a lata "trava" exatamente no alvo, sem escapar do quadro
+const LIMIAR_ESCALA_ESCONDER_CAN1 = 0.03 // abaixo disso a lata 1 já está praticamente invisível de tão pequena
 const INCLINACAO_POUSO_X = 0.16 // inclinação diagonal (eixo x) aplicada só no pouso, dentro do quadro
 const INCLINACAO_POUSO_Z = -0.4 // inclinação diagonal (eixo z) aplicada só no pouso, dentro do quadro
 const AFUNDAMENTO_SUMIR = 2.8 // o quanto a lata desce (eixo y) enquanto some, na 2ª fase da energeticos
@@ -169,6 +170,12 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
   const balancoRef = useRef(null)
   const mortalRef = useRef(null)
   const primitiveRef = useRef(null)
+  // controla se a lata 1 ainda é desenhada: assim que ela encolhe o
+  // suficiente (já pousou e está sumindo pra dar lugar à can_2_blue) ela
+  // some de vez (visible=false), pro three.js parar de desenhá-la e não
+  // pesar o site à toa
+  const [visivel, setVisivel] = useState(true)
+  const escondidoRef = useRef(false)
 
   // raycaster + plano reaproveitados a cada frame pra não recriar objetos no loop
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
@@ -288,17 +295,27 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
       // na 2ª fase, além de descer, ela encolhe até sumir de vez
       const escalaAlvo = gsap.utils.interpolate(escalaAlvoPouso, 0, progressoSumir)
 
+      let novaEscala
       if (progressoQueda >= LIMIAR_TRAVAR_POUSO) {
         const escalaAtual = primitiveRef.current.scale.x
-        const novaEscala = escalaAtual + (escalaAlvo - escalaAtual) * SUAVIDADE_POUSO_SUMIR
+        novaEscala = escalaAtual + (escalaAlvo - escalaAtual) * SUAVIDADE_POUSO_SUMIR
         primitiveRef.current.scale.setScalar(novaEscala)
       } else {
         const escalaAtual = primitiveRef.current.scale.x
-        const novaEscala =
+        novaEscala =
           escalaAtual +
           (escalaAlvo - escalaAtual) *
             (progressoQueda > 0 ? SUAVIDADE_QUEDA_ESCALA : 0.08)
         primitiveRef.current.scale.setScalar(novaEscala)
+      }
+
+      // só esconde de vez depois que ela já pousou e está na fase de sumir
+      // (progressoSumir > 0) e já encolheu o suficiente pra ninguém notar o
+      // sumiço — evita esconder ela ainda "grande" por engano
+      const deveEsconder = progressoSumir > 0 && novaEscala < LIMIAR_ESCALA_ESCONDER_CAN1
+      if (deveEsconder !== escondidoRef.current) {
+        escondidoRef.current = deveEsconder
+        setVisivel(!deveEsconder)
       }
     }
 
@@ -331,7 +348,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
 
   return (
     <group ref={grupoRef}>
-      <group ref={balancoRef}>
+      <group ref={balancoRef} visible={visivel}>
         <group ref={mortalRef}>
           <Center>
             <primitive ref={primitiveRef} object={scene} scale={ESCALA_INICIAL} />

@@ -14,8 +14,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 42%, rgba(235, 204, 4, 0.22), transparent 55%),
-    linear-gradient(160deg, #002776 0%, #012f52 45%, #009c3b 100%);
+    radial-gradient(circle at 50% 42%, rgba(4, 19, 235, 0.041), transparent 55%),
+    linear-gradient(160deg, #002776 0%, #012f52 45%, #ff000081 100%);
 }
 
 .brasil-conteudo {
@@ -59,15 +59,18 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(220px, 16%);
-  pointer-events: none;
-  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+  width: min(270px, 20%); /* Tamanho aumentado */
+  pointer-events: auto;
+  cursor: crosshair;
+  filter: drop-shadow(0 14px 30px rgba(0, 0, 0, 0.55));
+  user-select: none;
 }
 
 .brasil-bandeira {
   display: block;
   width: 100%;
   height: auto;
+  pointer-events: none;
 }
 
 .brasil-video-wrap {
@@ -77,6 +80,18 @@
   transform: translateY(-50%);
   width: min(680px, 46%); 
   pointer-events: auto; 
+}
+
+.brasil-bandeira-reveal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(circle 0px at 50% 50%, black 0%, transparent 100%);
+  mask-image: radial-gradient(circle 0px at 50% 50%, black 0%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 
 .brasil-video-moldura {
@@ -112,7 +127,6 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
@@ -180,6 +194,87 @@
   transition: width 0.1s linear;
 }
 
+.brasil-scroll-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.brasil-scroll-content {
+  position: relative;
+  width: 100%;
+  will-change: transform;
+}
+
+/* ocupa exatamente a altura da tela — é onde ficam o texto, as bandeiras
+   e o vídeo, do jeito que já eram posicionados antes (position: absolute,
+   top: 50% etc., agora relativos a esta caixa em vez da brasil-cena) */
+.brasil-tela-inicial {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+}
+
+.brasil-galeria-lista {
+  position: relative;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: min-content;
+  align-items: start;
+  justify-items: center;
+  gap: 2.2rem 1.5rem;
+  padding: 4rem 4% 6rem;
+}
+
+.brasil-pessoa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 160px;
+}
+
+.brasil-pessoa-foto {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
+}
+
+.brasil-pessoa-nome {
+  font-family: 'Poppins', 'Arial Narrow', sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+}
+
+.brasil-pessoa-sobrenome {
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.brasil-pessoa-esporte {
+  font-family: 'Poppins', 'Arial Narrow', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #e2231a;
+  text-align: center;
+  white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .brasil-conteudo {
     max-width: 50%;
@@ -192,5 +287,22 @@
 
   .brasil-bandeira-wrap {
     width: min(120px, 14%);
+  }
+
+  .brasil-galeria-lista {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.4rem 0.8rem;
+  }
+
+  .brasil-pessoa {
+    max-width: 90px;
+  }
+
+  .brasil-pessoa-foto {
+    max-width: 90px;
+  }
+
+  .brasil-pessoa-nome {
+    font-size: 0.55rem;
   }
 }
