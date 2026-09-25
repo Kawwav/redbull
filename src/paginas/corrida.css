@@ -372,6 +372,9 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 8%;
+  pointer-events: none; /* sem isso, esse div cobre a tela inteira por cima
+    do <Brasil /> (que vem antes dele no DOM) e captura todos os cliques e o
+    hover, mesmo sendo invisível — por isso o vídeo não reagia ao mouse */
 }
 
 .cortina-terra {

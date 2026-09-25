@@ -630,7 +630,17 @@ function Corrida() {
       gsap.set(nuvem1Ref.current, NUVEM1_FORA)
       gsap.set(nuvem2Ref.current, NUVEM2_FORA)
       gsap.set(nuvem3Ref.current, NUVEM3_FORA)
-      gsap.set(brasilRef.current, { opacity: 0 })
+
+      // o .corrida-cortina ganha scale(ESPACO_ZOOM_ESCALA) logo abaixo e esse
+      // zoom nunca é desfeito. como o brasil.jsx é filho dessa mesma div, ele
+      // herdaria o zoom junto — aqui aplicamos o contra-zoom exato (mesmo
+      // transform-origin do pai, escala inversa) pra ele ficar sempre no
+      // tamanho normal, sem depender de nenhum ajuste manual de posição
+      gsap.set(brasilRef.current, {
+        opacity: 0,
+        scale: 1 / ESPACO_ZOOM_ESCALA,
+        transformOrigin: '8% 72%',
+      })
 
       tl.to(
         cortinaRef.current,

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@800;900&display=swap');
 
 .brasil-cena {
   position: absolute;
@@ -20,33 +20,177 @@
 
 .brasil-conteudo {
   position: absolute;
-  /* o .corrida-cortina fica com scale(2.6) e transformOrigin: '8% 72%'
-     (definido em corrida.jsx) e esse zoom nunca é desfeito. por isso o
-     texto não fica em top/left: 50% — esses valores são o ponto que,
-     depois de passar por esse mesmo zoom, cai no centro visual da tela */
   top: 50%;
-  left: 32%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  width: 100%;
-  padding: 0 5%;
+  left: 7%;
+  transform: translateY(-50%);
+  text-align: left;
+  width: auto;
+  max-width: 60%;
+  padding: 0 5% 0 0;
+  margin-left: 0;
 }
 
-.brasil-titulo {
+.brasil-cena .brasil-titulo {
   margin: 0;
-  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Poppins', 'Arial Narrow', sans-serif;
   text-transform: uppercase;
-  font-weight: 400;
-  line-height: 1.05;
+  font-weight: 800;
+  line-height: 0.92;
   letter-spacing: -0.01em;
-  font-size: clamp(1.8rem, 5.2vw, 3.8rem);
-  color: #ffdf00;
-  text-shadow: 0 0 60px rgba(0, 156, 59, 0.55);
+  font-size: clamp(1.35rem, 3.48vw, 3.82rem);
 }
 
-.brasil-linha2 {
+.brasil-linha {
   display: block;
-  margin-top: 0.35em;
-  font-size: 0.42em;
+}
+
+.brasil-linha-escura {
   color: #ffffff;
+}
+
+.brasil-linha-clara {
+  color: #e2231a;
+}
+
+.brasil-bandeira-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(220px, 16%);
+  pointer-events: none;
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.45));
+}
+
+.brasil-bandeira {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.brasil-video-wrap {
+  position: absolute;
+  top: 50%;
+  right: 6%;
+  transform: translateY(-50%);
+  width: min(680px, 46%); 
+  pointer-events: auto; 
+}
+
+.brasil-video-moldura {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+}
+
+.brasil-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.brasil-video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.brasil-video-play:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  background: #ffffff;
+}
+
+.brasil-video-controles {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.brasil-video-botao {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.brasil-video-botao:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.brasil-video-tempo {
+  flex-shrink: 0;
+  min-width: 2.4em;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.brasil-video-barra {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+
+.brasil-video-barra-preenchida {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 999px;
+  background: #e2231a;
+  transition: width 0.1s linear;
+}
+
+@media (max-width: 900px) {
+  .brasil-conteudo {
+    max-width: 50%;
+  }
+
+  .brasil-video-wrap {
+    width: min(300px, 42%);
+    right: 4%;
+  }
+
+  .brasil-bandeira-wrap {
+    width: min(120px, 14%);
+  }
 }
