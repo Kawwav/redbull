@@ -44,6 +44,7 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
   const tourosRef = useRef(null)
   const textoRef = useRef(null)
   const textoLateralRef = useRef(null)
+  const videoCantoRef = useRef(null)
 
   useEffect(() => {
     document.body.style.overflow = mostrarLata ? '' : 'hidden'
@@ -85,7 +86,26 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
     if (letras.length === 0) return
 
     gsap.set(letras, { yPercent: 100, opacity: 0 })
+
+    // vídeo do canto começa escondido fora da tela, encostado na parede direita
+    if (videoCantoRef.current) {
+      gsap.set(videoCantoRef.current, { xPercent: 150 })
+    }
   }, [mostrarLata])
+
+  useEffect(() => {
+    // desliza o vídeo do canto: entra vindo da direita assim que a lata aparece,
+    // e volta pra fora (direita) quando o scroll chega no ponto em que o texto
+    // de fundo e o header surgem (mesmo limiar do mostrarTexto)
+    if (!mostrarLata || !videoCantoRef.current) return
+
+    gsap.to(videoCantoRef.current, {
+      xPercent: mostrarTexto ? 150 : 0,
+      duration: mostrarTexto ? 0.5 : 0.7,
+      ease: mostrarTexto ? 'power2.in' : 'power3.out',
+      overwrite: true,
+    })
+  }, [mostrarTexto, mostrarLata])
 
   useEffect(() => {
     // sobe as letras uma a uma quando o scroll passa do limiar
@@ -199,6 +219,16 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
                   )}
                 </p>
               </div>
+
+              <video
+                ref={videoCantoRef}
+                className="videoCanto"
+                src="/videos/download.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
             </>
           )}
         </div>

@@ -4,6 +4,7 @@ import { useGLTF, Center, Environment } from '@react-three/drei'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Brasil from './brasil.jsx'
 import './corrida.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -195,7 +196,7 @@ function gerarCaminhoPista() {
       PISTA_CURVA.meio +
       PISTA_CURVA.amplitude *
         Math.sin((2 * Math.PI * (u - 0.5)) / PISTA_CURVA.comprimento + PISTA_CURVA.fase)
-    // no SVG o y cresce pra baixo, por isso o (1 - altura)
+
     pontos.push(`${i === 0 ? 'M' : 'L'}${(u * 1000).toFixed(1)} ${((1 - altura) * 1000).toFixed(1)}`)
   }
   return pontos.join(' ')
@@ -210,8 +211,92 @@ const CARROS_PISTA = {
 }
 const PISTA_INICIO = 1.02
 const PISTA_DURACAO = 0.7
-const PISTA_PAUSA_FINAL = 0.15
-const DURACAO_TOTAL = PISTA_INICIO + PISTA_DURACAO + PISTA_PAUSA_FINAL
+const PISTA_PAUSA_FINAL = 0.42
+const CORTINA_DELAY = 0.1
+const CORTINA_DURACAO = PISTA_PAUSA_FINAL - CORTINA_DELAY
+const CORTINA_FIM = PISTA_INICIO + PISTA_DURACAO + PISTA_PAUSA_FINAL
+
+const ESPACO_ZOOM_DURACAO = 0.75
+const ESPACO_ZOOM_ESCALA = 2.6
+const RESTO_FADE_FRACAO = 0.6
+
+// estado "fora da tela" das 3 nuvens principais — usado tanto pra elas
+// entrarem (do jeito que já era) quanto pra saírem por onde vieram
+const NUVEM1_FORA = { yPercent: 140, opacity: 0 }
+const NUVEM2_FORA = { xPercent: -140, opacity: 0 }
+const NUVEM3_FORA = { yPercent: -140, opacity: 0 }
+
+const NUVENS_EXTRA = [
+  { src: '/imagens/nuvem1.webp', width: '24vw', maxWidth: '340px', minWidth: '56%', top: '-10%', left: '-10%', entrada: 'cima', atraso: 0.0 },
+  { src: '/imagens/nuvem2.webp', width: '22vw', maxWidth: '300px', minWidth: '50%', top: '-14%', left: '34%', entrada: 'cima', atraso: 0.05 },
+  { src: '/imagens/nuvem3.webp', width: '26vw', maxWidth: '360px', minWidth: '58%', top: '28%', right: '-10%', entrada: 'direita', atraso: 0.1 },
+  { src: '/imagens/nuvem1.webp', width: '28vw', maxWidth: '380px', minWidth: '62%', bottom: '-12%', right: '-8%', entrada: 'baixo', atraso: 0.15 },
+  { src: '/imagens/nuvem2.webp', width: '30vw', maxWidth: '400px', minWidth: '64%', bottom: '-14%', left: '32%', entrada: 'baixo', atraso: 0.2 },
+  { src: '/imagens/nuvem3.webp', width: '24vw', maxWidth: '330px', minWidth: '54%', top: '30%', left: '24%', entrada: 'centro', atraso: 0.25 },
+  { src: '/imagens/nuvem1.webp', width: '22vw', maxWidth: '300px', minWidth: '50%', top: '34%', left: '52%', entrada: 'centro', atraso: 0.3 },
+  { src: '/imagens/nuvem2.webp', width: '20vw', maxWidth: '280px', minWidth: '46%', bottom: '6%', left: '2%', entrada: 'esquerda', atraso: 0.35 },
+
+  { src: '/imagens/nuvem1.webp', width: '28vw', maxWidth: '380px', minWidth: '60%', bottom: '-18%', left: '-18%', entrada: 'baixo-esquerda', atraso: 0.4 },
+  { src: '/imagens/nuvem2.webp', width: '22vw', maxWidth: '300px', minWidth: '50%', bottom: '-8%', left: '-4%', entrada: 'baixo-esquerda', atraso: 0.44 },
+  { src: '/imagens/nuvem3.webp', width: '32vw', maxWidth: '420px', minWidth: '68%', bottom: '-22%', left: '4%', entrada: 'baixo-esquerda', atraso: 0.48 },
+  { src: '/imagens/nuvem1.webp', width: '20vw', maxWidth: '270px', minWidth: '44%', bottom: '2%', left: '-10%', entrada: 'baixo-esquerda', atraso: 0.52 },
+  { src: '/imagens/nuvem2.webp', width: '25vw', maxWidth: '340px', minWidth: '54%', bottom: '-10%', left: '16%', entrada: 'baixo-esquerda', atraso: 0.56 },
+
+  { src: '/imagens/nuvem3.webp', width: '30vw', maxWidth: '400px', minWidth: '64%', top: '-16%', left: '-4%', entrada: 'cima', atraso: 0.06 },
+  { src: '/imagens/nuvem1.webp', width: '28vw', maxWidth: '380px', minWidth: '60%', top: '-18%', left: '20%', entrada: 'cima', atraso: 0.1 },
+  { src: '/imagens/nuvem2.webp', width: '26vw', maxWidth: '360px', minWidth: '58%', top: '-12%', left: '46%', entrada: 'cima', atraso: 0.14 },
+  { src: '/imagens/nuvem3.webp', width: '28vw', maxWidth: '380px', minWidth: '60%', top: '-18%', left: '68%', entrada: 'cima', atraso: 0.18 },
+  { src: '/imagens/nuvem1.webp', width: '26vw', maxWidth: '360px', minWidth: '56%', top: '-14%', right: '-10%', entrada: 'cima', atraso: 0.22 },
+  { src: '/imagens/nuvem2.webp', width: '22vw', maxWidth: '300px', minWidth: '48%', top: '2%', left: '8%', entrada: 'cima', atraso: 0.26 },
+  { src: '/imagens/nuvem3.webp', width: '20vw', maxWidth: '280px', minWidth: '44%', top: '4%', left: '58%', entrada: 'cima', atraso: 0.3 },
+]
+
+// maior atraso entre todas as nuvens, usado pra garantir que sobre scroll
+// suficiente no pin pra última nuvem terminar de entrar (ou de sair)
+const NUVENS_ATRASO_MAX = Math.max(0.2, ...NUVENS_EXTRA.map((n) => n.atraso))
+
+// devolve o estado "fora da tela" (de onde ela vem/pra onde ela volta) e o
+// estado "no lugar" de uma nuvem extra, a partir da direção de entrada dela.
+// usada tanto na entrada quanto na saída (saída = voltar pro estadoInicial)
+function estadosNuvemExtra(entrada) {
+  const estadoInicial =
+    entrada === 'cima'
+      ? { yPercent: -140, opacity: 0 }
+      : entrada === 'baixo'
+        ? { yPercent: 140, opacity: 0 }
+        : entrada === 'esquerda'
+          ? { xPercent: -140, opacity: 0 }
+          : entrada === 'direita'
+            ? { xPercent: 140, opacity: 0 }
+            : entrada === 'baixo-esquerda'
+              ? { xPercent: -140, yPercent: 140, opacity: 0 }
+              : { scale: 0.55, opacity: 0 }
+
+  const estadoFinal =
+    entrada === 'cima' || entrada === 'baixo'
+      ? { yPercent: 0, opacity: 1 }
+      : entrada === 'esquerda' || entrada === 'direita'
+        ? { xPercent: 0, opacity: 1 }
+        : entrada === 'baixo-esquerda'
+          ? { xPercent: 0, yPercent: 0, opacity: 1 }
+          : { scale: 1, opacity: 1 }
+
+  return { estadoInicial, estadoFinal }
+}
+
+// fim da entrada das nuvens: tela 100% coberta, é a deixa pra terra sumir e
+// o brasil.jsx aparecer por trás, sem o público perceber a troca
+const NUVENS_FIM = CORTINA_FIM + ESPACO_ZOOM_DURACAO * (1 + NUVENS_ATRASO_MAX)
+
+const BRASIL_TRANSICAO_DURACAO = 0.3
+
+// nuvens saem pelas mesmas direções e com os mesmos atrasos relativos que
+// entraram — só que a cortina (terra + nuvens + brasil) continua na escala
+// do zoom, ninguém "desfaz" o zoom aqui
+const NUVENS_SAIDA_INICIO = NUVENS_FIM + BRASIL_TRANSICAO_DURACAO
+const NUVENS_SAIDA_DURACAO = ESPACO_ZOOM_DURACAO
+
+const DURACAO_TOTAL = NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * (1 + NUVENS_ATRASO_MAX)
 
 const cena = {
   elevacao: ELEVACAO_INICIAL,
@@ -380,6 +465,15 @@ function Corrida() {
   const textoRef = useRef(null)
   const pilotosRef = useRef(null)
   const retanguloRef = useRef(null)
+  const cortinaRef = useRef(null)
+  const terraRef = useRef(null)
+  const nuvem1Ref = useRef(null)
+  const nuvem2Ref = useRef(null)
+  const nuvem3Ref = useRef(null)
+  const restoRef = useRef(null)
+  const nuvensExtraRef = useRef([])
+  nuvensExtraRef.current = []
+  const brasilRef = useRef(null)
 
   useEffect(() => {
     if (!corridaRef.current || !textoRef.current) return
@@ -524,8 +618,112 @@ function Corrida() {
         )
       })
 
-      // segura o resultado final um pouquinho antes de soltar a seção
-      tl.to({}, { duration: PISTA_PAUSA_FINAL }, PISTA_INICIO + PISTA_DURACAO)
+      gsap.set(cortinaRef.current, { xPercent: 100 })
+      tl.fromTo(
+        cortinaRef.current,
+        { xPercent: 100 },
+        { xPercent: 0, ease: 'sine.inOut', duration: CORTINA_DURACAO },
+        PISTA_INICIO + PISTA_DURACAO + CORTINA_DELAY
+      )
+
+      gsap.set(cortinaRef.current, { transformOrigin: '8% 72%' })
+      gsap.set(nuvem1Ref.current, NUVEM1_FORA)
+      gsap.set(nuvem2Ref.current, NUVEM2_FORA)
+      gsap.set(nuvem3Ref.current, NUVEM3_FORA)
+      gsap.set(brasilRef.current, { opacity: 0 })
+
+      tl.to(
+        cortinaRef.current,
+        { scale: ESPACO_ZOOM_ESCALA, ease: 'power1.inOut', duration: ESPACO_ZOOM_DURACAO },
+        CORTINA_FIM
+      )
+
+      tl.to(
+        restoRef.current,
+        { opacity: 0, ease: 'power1.in', duration: ESPACO_ZOOM_DURACAO * RESTO_FADE_FRACAO },
+        CORTINA_FIM
+      )
+
+      tl.to(
+        nuvem1Ref.current,
+        { yPercent: 0, opacity: 1, ease: 'sine.inOut', duration: ESPACO_ZOOM_DURACAO },
+        CORTINA_FIM
+      )
+
+      tl.to(
+        nuvem2Ref.current,
+        { xPercent: 0, opacity: 1, ease: 'sine.inOut', duration: ESPACO_ZOOM_DURACAO },
+        CORTINA_FIM + ESPACO_ZOOM_DURACAO * 0.1
+      )
+
+      tl.to(
+        nuvem3Ref.current,
+        { yPercent: 0, opacity: 1, ease: 'sine.inOut', duration: ESPACO_ZOOM_DURACAO },
+        CORTINA_FIM + ESPACO_ZOOM_DURACAO * 0.2
+      )
+
+      // nuvens extras: cada uma entra de um lado (ou só some/aparece, se
+      // for uma nuvem "de meio") pra fechar qualquer vão que sobrar
+      NUVENS_EXTRA.forEach((nuvem, i) => {
+        const el = nuvensExtraRef.current[i]
+        if (!el) return
+
+        const { estadoInicial, estadoFinal } = estadosNuvemExtra(nuvem.entrada)
+
+        gsap.set(el, estadoInicial)
+        tl.to(
+          el,
+          { ...estadoFinal, ease: 'sine.inOut', duration: ESPACO_ZOOM_DURACAO },
+          CORTINA_FIM + ESPACO_ZOOM_DURACAO * nuvem.atraso
+        )
+      })
+
+      // --- tela 100% coberta de nuvem: a terra some e o brasil.jsx aparece
+      // por trás, tudo escondido atrás das nuvens ---
+      tl.to(
+        terraRef.current,
+        { opacity: 0, ease: 'none', duration: BRASIL_TRANSICAO_DURACAO },
+        NUVENS_FIM
+      )
+      tl.fromTo(
+        brasilRef.current,
+        { opacity: 0 },
+        { opacity: 1, ease: 'none', duration: BRASIL_TRANSICAO_DURACAO },
+        NUVENS_FIM
+      )
+
+      // --- nuvens saem pelo mesmo caminho por onde vieram, revelando o
+      // brasil.jsx. a cortina continua na escala do zoom (ESPACO_ZOOM_ESCALA)
+      // o tempo todo — ninguém dá "unzoom" aqui, elas só voltam pro lugar
+      // de onde entraram, no tamanho em que estão ---
+      tl.to(
+        nuvem1Ref.current,
+        { ...NUVEM1_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
+        NUVENS_SAIDA_INICIO
+      )
+      tl.to(
+        nuvem2Ref.current,
+        { ...NUVEM2_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
+        NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * 0.1
+      )
+      tl.to(
+        nuvem3Ref.current,
+        { ...NUVEM3_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
+        NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * 0.2
+      )
+
+      NUVENS_EXTRA.forEach((nuvem, i) => {
+        const el = nuvensExtraRef.current[i]
+        if (!el) return
+
+        const { estadoInicial } = estadosNuvemExtra(nuvem.entrada)
+
+        tl.to(
+          el,
+          { ...estadoInicial, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
+          NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * nuvem.atraso
+        )
+      })
     }, corridaRef)
 
     return () => {
@@ -616,6 +814,47 @@ function Corrida() {
         {PILOTOS.map((piloto, i) => (
           <PilotoCard key={i} {...piloto} />
         ))}
+      </div>
+
+      <div ref={cortinaRef} className="corrida-cortina">
+        <Brasil brasilRef={brasilRef} />
+
+        <img ref={terraRef} className="cortina-imagem cortina-terra" src="/espaço/terra.webp" alt="Terra" />
+        <img ref={nuvem1Ref} className="cortina-imagem cortina-nuvem1" src="/imagens/nuvem1.webp" alt="Nuvem" />
+        <img ref={nuvem2Ref} className="cortina-imagem cortina-nuvem2" src="/imagens/nuvem2.webp" alt="Nuvem" />
+        <img ref={nuvem3Ref} className="cortina-imagem cortina-nuvem3" src="/imagens/nuvem3.webp" alt="Nuvem" />
+
+        {NUVENS_EXTRA.map((nuvem, i) => (
+          <img
+            key={i}
+            ref={(el) => {
+              nuvensExtraRef.current[i] = el
+            }}
+            className="cortina-imagem cortina-nuvem-extra"
+            src={nuvem.src}
+            alt="Nuvem"
+            style={{
+              width: nuvem.width,
+              maxWidth: nuvem.maxWidth,
+              minWidth: nuvem.minWidth,
+              top: nuvem.top,
+              left: nuvem.left,
+              right: nuvem.right,
+              bottom: nuvem.bottom,
+            }}
+          />
+        ))}
+
+        <div ref={restoRef} className="cortina-resto">
+          <img className="cortina-imagem cortina-lua" src="/espaço/lua.webp" alt="Lua" />
+          <img className="cortina-imagem cortina-nave" src="/espaço/nave.webp" alt="Nave" />
+          <img className="cortina-imagem cortina-pessoa" src="/espaço/pessoa.webp" alt="Pessoa" />
+          <h2>AS VEZES A GENTE DA <br />AAASAS DEMAIS</h2>
+          <p className="cortina-citacao">
+            “Quando se está no topo do mundo, você não pensa mais em recordes, tudo o você que pensa é que você quer voltar vivo”
+            <span>— Felix Baumgartner</span>
+          </p>
+        </div>
       </div>
     </section>
   )

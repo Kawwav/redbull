@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+
+.brasil-cena {
+  position: absolute;
+  inset: 0;
+  z-index: 0; /* fica atrás da terra (z-index 1) e das nuvens (z-index 2) */
+  opacity: 0; /* controlado pelo gsap em corrida.jsx */
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.brasil-fundo {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(235, 204, 4, 0.22), transparent 55%),
+    linear-gradient(160deg, #002776 0%, #012f52 45%, #009c3b 100%);
+}
+
+.brasil-conteudo {
+  position: absolute;
+  /* o .corrida-cortina fica com scale(2.6) e transformOrigin: '8% 72%'
+     (definido em corrida.jsx) e esse zoom nunca é desfeito. por isso o
+     texto não fica em top/left: 50% — esses valores são o ponto que,
+     depois de passar por esse mesmo zoom, cai no centro visual da tela */
+  top: 50%;
+  left: 32%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 100%;
+  padding: 0 5%;
+}
+
+.brasil-titulo {
+  margin: 0;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.8rem, 5.2vw, 3.8rem);
+  color: #ffdf00;
+  text-shadow: 0 0 60px rgba(0, 156, 59, 0.55);
+}
+
+.brasil-linha2 {
+  display: block;
+  margin-top: 0.35em;
+  font-size: 0.42em;
+  color: #ffffff;
+}
