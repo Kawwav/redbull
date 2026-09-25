@@ -503,6 +503,43 @@ function Corrida() {
   const [pistaVisivel, setPistaVisivel] = useState(true)
   const visibilidadeCortinaRef = useRef({ esquerda: true, centro: true, direita: true, pista: true })
 
+  // Efeito parallax nas nuvens: cada nuvem reage ao movimento do mouse com uma
+  // intensidade levemente diferente, dando sensação de profundidade — mesmo
+  // esquema usado no brasil.jsx (texto, bandeira e vídeo). Usa as propriedades
+  // x/y (em px) do gsap, que convivem sem conflito com o xPercent/yPercent/
+  // scale/opacity já controlados pela timeline de scroll (entrada e saída das
+  // nuvens), já que o gsap compõe as duas no mesmo transform.
+  useEffect(() => {
+    const nuvensPrincipais = [nuvem1Ref.current, nuvem2Ref.current, nuvem3Ref.current].filter(Boolean)
+    const nuvensExtras = nuvensExtraRef.current.filter(Boolean)
+    const todasNuvens = [...nuvensPrincipais, ...nuvensExtras]
+    if (todasNuvens.length === 0) return
+
+    const opcoesQuickTo = { duration: 0.9, ease: 'power3.out' }
+
+    const alvos = todasNuvens.map((el, i) => ({
+      setX: gsap.quickTo(el, 'x', opcoesQuickTo),
+      setY: gsap.quickTo(el, 'y', opcoesQuickTo),
+      // profundidades variadas: nuvens diferentes se movem com intensidades
+      // diferentes, reforçando a sensação de camadas a distâncias distintas
+      intensidadeX: 10 + (i % 5) * 5,
+      intensidadeY: 6 + (i % 4) * 4,
+    }))
+
+    const aoMoverMouseNuvens = (evento) => {
+      const px = evento.clientX / window.innerWidth - 0.5
+      const py = evento.clientY / window.innerHeight - 0.5
+
+      alvos.forEach(({ setX, setY, intensidadeX, intensidadeY }) => {
+        setX(px * intensidadeX)
+        setY(py * intensidadeY)
+      })
+    }
+
+    window.addEventListener('mousemove', aoMoverMouseNuvens)
+    return () => window.removeEventListener('mousemove', aoMoverMouseNuvens)
+  }, [])
+
   useEffect(() => {
     if (!corridaRef.current || !textoRef.current) return
 
