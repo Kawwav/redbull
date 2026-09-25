@@ -47,8 +47,6 @@ const INCLINACAO_POUSO_Z = -0.4 // inclinação diagonal (eixo z) aplicada só n
 const AFUNDAMENTO_SUMIR = 2.8 // o quanto a lata desce (eixo y) enquanto some, na 2ª fase da energeticos
 const PLANO_PROFUNDIDADE_QUEDA = 0
 
-// agora o avião aparece logo no início do scroll da comeco e fica orbitando
-// a lata o tempo todo enquanto estivermos nessa seção (some só ao entrar na energeticos)
 const INICIO_FADE_AVIAO = 0.05 // a partir de quantos % do scroll da comeco ele começa a aparecer
 const FIM_FADE_AVIAO = 0.2 // com quantos % do scroll ele já está 100% visível/orbitando
 
@@ -97,9 +95,6 @@ const INCLINACAO_TORTA_X_CAN2 = 0.32
 const INCLINACAO_TORTA_Z_CAN2 = -0.4
 const DURACAO_GIRO_HOVER_CAN2 = 0.9
 
-// --- can_3 (verde) e can_4 (pêssego): vivem dentro dos 2 quadrados
-// secundários (esquerda/direita) que só aparecem na fase 2 do scroll da
-// energeticos (revelacaoProgressRef), acompanhando a posição deles na tela ---
 const ESCALA_LATERAL_BASE = 4.2 // escala "de referência" das latas laterais
 const FATOR_ESCALA_CAN3 = 1 // ajuste até o can_3_green.glb ficar do tamanho visual desejado
 const FATOR_ESCALA_CAN4 = 1 // idem, pro can_4_peach.glb
@@ -119,22 +114,13 @@ const SUAVIDADE_LATERAL_ESCALA = 0.07
 const AMPLITUDE_FLUTUACAO_LATERAL_Y = 0.04
 const VELOCIDADE_FLUTUACAO_LATERAL_Y = 0.6
 
-// hover nos quadros secundários (esquerda/direita) — mesma animação do hover
-// do quadro-menu central: uma volta completa em Y e termina torta (X + Z)
 const VOLTA_HOVER_LATERAL = Math.PI * 2 // 360°
 const INCLINACAO_TORTA_X_LATERAL = 0.32
 const INCLINACAO_TORTA_Z_LATERAL = -0.4
 const DURACAO_GIRO_HOVER_LATERAL = 0.9
 
-// fração da LARGURA DO PRÓPRIO QUADRADO usada como deslocamento de entrada da
-// lata lateral: 0 = nasce já centralizada (sem deslizar), ~0.5 = nasce bem na
-// borda do quadrado, do seu próprio lado, e desliza de lá pra dentro — assim
-// a entrada fica contida dentro/perto do quadrado, não vindo de fora da tela
 const FRACAO_ENTRADA_LATERAL = 0.45
 
-// projeta o centro (em tela) de um elemento HTML qualquer pro mesmo plano 3D
-// em que as latas vivem — versão genérica de obterPosicaoAlvoQueda, usada
-// pelas latas laterais (que seguem os quadros secundários, não o quadro-menu)
 function obterPosicaoElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorSaida) {
   const elemento = elementoRef?.current
   if (!elemento || !camera || !size) return null
@@ -154,10 +140,6 @@ function obterPosicaoElementoNoMundo(elementoRef, camera, size, raycaster, plano
   return encontrou ? vetorSaida : null
 }
 
-// mede a largura (em unidades 3D, no mesmo plano das latas) de um elemento
-// HTML qualquer, projetando a borda esquerda e a borda direita dele — usada
-// só pra calibrar o deslocamento de entrada das latas laterais, em vez de um
-// valor fixo "no chute" que não bate com o tamanho real do quadrado na tela
 function obterLarguraElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorAuxiliar) {
   const elemento = elementoRef?.current
   if (!elemento || !camera || !size) return null
@@ -236,18 +218,11 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     if (!grupoRef.current) return
 
     const progresso = scrollProgressRef?.current ?? 0
-    // 0 -> 1 durante o scroll pinado da seção energeticos, ou seja, exatamente
-    // o trecho "entre" a página comeco (já concluída) e a energeticos se revelando
+
     const progressoQueda = energeticosProgressRef?.current ?? 0
-    // 0 -> 1 na 2ª fase da energeticos (depois que a lata já pousou): textos saem
-    // pros lados, a lata afunda e some, e os quadrados secundários se revelam
+
     const progressoSumir = revelacaoProgressRef?.current ?? 0
     const { x, y } = mouseRef.current
-
-    // progresso do mortal (0 -> 1): uma parte pequena acontece ainda no fim do
-    // scroll da "comeco" (faseComeco), o resto se completa logo no começo do
-    // scroll da "energeticos" (faseEnergeticos) — a transição entre as duas é
-    // contínua, então o giro acontece exatamente "atravessando" as duas seções
     const faseComeco = Math.min(
       1,
       Math.max(0, (progresso - LIMIAR_INICIO_MORTAL_COMECO) / (1 - LIMIAR_INICIO_MORTAL_COMECO))
@@ -256,8 +231,6 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     const progressoMortal =
       faseComeco * PESO_MORTAL_COMECO + faseEnergeticos * (1 - PESO_MORTAL_COMECO)
 
-    // o mouse agora inclina a lata o tempo todo, em qualquer momento (comeco,
-    // mortal, queda, já pousada) — some com o amortecimento anterior
     const influenciaMouse = 1
 
     const baseX = gsap.utils.interpolate(INCLINACAO_X, 0, progresso)
@@ -272,14 +245,11 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     grupoRef.current.rotation.y += (alvoY - grupoRef.current.rotation.y) * 0.05
     grupoRef.current.rotation.z += (alvoZ - grupoRef.current.rotation.z) * 0.05
 
-    // --- mortal: uma volta completa em X, por cima da rotação "base" acima ---
     if (mortalRef.current) {
       const rotacaoAlvoMortal = progressoMortal * Math.PI * 2 * VOLTAS_MORTAL * SENTIDO_MORTAL
       mortalRef.current.rotation.x +=
         (rotacaoAlvoMortal - mortalRef.current.rotation.x) * SUAVIDADE_MORTAL
     }
-
-    // --- queda: a lata desliza da posição de repouso até o centro do .quadro-menu ---
     if (progressoQueda > 0) {
       const alvo = obterPosicaoAlvoQueda(state.camera, state.size)
       if (alvo) {
@@ -293,8 +263,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
         const posicaoAlvoY = posicaoAlvoYPouso - AFUNDAMENTO_SUMIR * progressoSumir
 
         if (progressoQueda >= LIMIAR_TRAVAR_POUSO) {
-          // já pousou (inclusive durante o afundamento/sumiço): segue o alvo
-          // com bastante suavidade/delay, tanto indo quanto voltando com o scroll
+
           grupoRef.current.position.x +=
             (posicaoAlvoX - grupoRef.current.position.x) * SUAVIDADE_POUSO_SUMIR
           grupoRef.current.position.y +=
@@ -307,7 +276,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
         }
       }
     } else {
-      // garante que, se o usuário voltar o scroll, a lata retorna suavemente ao centro
+
       grupoRef.current.position.x += (0 - grupoRef.current.position.x) * SUAVIDADE_QUEDA_POSICAO
       grupoRef.current.position.y +=
         (POSICAO_Y_FINAL - grupoRef.current.position.y) * SUAVIDADE_QUEDA_POSICAO

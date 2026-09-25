@@ -94,16 +94,12 @@
   background: #c81c14;
 }
 
-/* pilha com o quadro principal na frente e os 2 secundários escondidos atrás —
-   420px de foto + 62px da faixa do nome embaixo */
 .pilha-quadros {
   position: relative;
   width: 420px;
   height: 482px;
 }
 
-/* alvo da queda da lata, centralizado na tela — moldura única que engloba a
-   foto (em cima) e a faixa com o nome (embaixo), sem diminuir a área da foto */
 .quadro-menu {
   position: relative;
   z-index: 3;
@@ -113,7 +109,7 @@
   flex-direction: column;
   border: 2px solid #1a1a1a;
   border-radius: 18px;
-  overflow: hidden; /* corta a metade das imagens de canto que fica pra fora */
+  overflow: hidden; 
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
@@ -124,17 +120,13 @@
   --cor-hover: #1a56db;
   box-shadow: 0 0 0 8px rgba(226, 35, 26, 0.18), 0 4px 18px rgba(0, 0, 0, 0.18);
   transform: scale(1.03);
-  /* só depois de pousada a lata 2 (can_2) que o quadrado vira "clicável" */
   cursor: pointer;
 }
 
-/* hover só existe depois que a lata já pousou ali dentro */
 .quadro-menu.pousou:hover {
   box-shadow: 0 0 0 8px rgba(26, 86, 219, 0.22), 0 4px 18px rgba(0, 0, 0, 0.18);
 }
 
-/* área da foto: ocupa todo o espaço restante (mesmo tamanho de antes) —
-   é aqui que mora o fundo colorido e o círculo de hover */
 .foto-polaroid {
   position: relative;
   flex: 1;
@@ -159,7 +151,6 @@
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
-/* faixa embaixo da foto, com o nome da lata e um "+" do lado direito */
 .legenda-cartao {
   flex-shrink: 0;
   height: 62px;
@@ -190,9 +181,6 @@
   color: #1a1a1a;
 }
 
-/* imagens dos cantos: o centro delas fica exatamente em cima do canto do
-   quadro, então metade cai dentro (visível) e metade cai fora (cortada pelo
-   overflow: hidden acima) — só aparecem no hover, junto com o fundo azul */
 .cantor-imagem {
   position: absolute;
   z-index: 1;
@@ -220,8 +208,6 @@
   opacity: 1;
 }
 
-/* quadrados escondidos atrás do quadro-menu, revelados na fase 2 do scroll —
-   mesma estrutura: foto em cima (tamanho normal) + faixa do nome embaixo */
 .quadro-secundario {
   position: absolute;
   top: 0;
@@ -242,8 +228,6 @@
   transition: box-shadow 0.4s ease;
 }
 
-/* mesmo círculo do quadro-menu: nasce no ponto do cursor e se expande até
-   cobrir a foto inteira */
 .quadro-secundario:hover .foto-polaroid::before {
   clip-path: circle(150% at var(--origem-x, 50%) var(--origem-y, 50%));
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
@@ -259,8 +243,6 @@
   --cor-hover: #ffb385;
 }
 
-/* mesmo hover do quadro-menu (fundo muda de cor + anel de sombra), só que
-   cada lado com a cor do próprio energético: verde pro can_3, pêssego pro can_4 */
 .quadro-secundario.esquerda:hover {
   box-shadow: 0 0 0 8px rgba(47, 158, 68, 0.22), 0 4px 18px rgba(0, 0, 0, 0.18);
 }

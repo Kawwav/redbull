@@ -6,21 +6,126 @@
   height: 100svh;
   overflow: hidden;
   background-color: #ffffff;
+  perspective: 120svh;
+  perspective-origin: 50% 25%;
 }
 
 .retangulo {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 100%;
+  left: -70%;
+  width: 240%;
   height: 48%;
   background-color: #0b0b0b;
+  overflow: hidden;
   z-index: 1;
 }
 
+.pista-detalhe {
+  position: absolute;
+  pointer-events: none;
+  visibility: hidden; 
+}
+
+.pista-asfalto {
+  inset: 0;
+  background: linear-gradient(to bottom, #2e2e2e 0%, #161616 100%);
+}
+
+.pista-svg {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.pista-svg path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+.pista-kerb-branco {
+  stroke: #ffffff;
+  stroke-width: 108.9svh;
+}
+
+.pista-kerb-vermelho {
+  stroke: #e2231a;
+  stroke-width: 108.9svh;
+  stroke-dasharray: 4vw 4vw;
+  animation: pista-andando-kerb 0.9s linear infinite;
+}
+
+.pista-rua {
+  stroke: #0b0b0b;
+  stroke-width: 95.5svh;
+}
+
+.pista-linha-central {
+  stroke: #ffffff;
+  stroke-width: 1.1vw;
+  stroke-dasharray: 5vw 5vw;
+  animation: pista-andando-linha 0.7s linear infinite;
+}
+
+@keyframes pista-andando-kerb {
+  to {
+    stroke-dashoffset: 8vw;
+  }
+}
+
+@keyframes pista-andando-linha {
+  to {
+    stroke-dashoffset: 10vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pista-kerb-vermelho,
+  .pista-linha-central,
+  .velocidade-linhas {
+    animation: none;
+  }
+
+  .velocidade-linhas {
+    opacity: 0.25;
+  }
+}
+
+.velocidade-linhas {
+  position: absolute;
+  inset: -25%;
+  z-index: 9;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 33%,
+    rgba(255, 255, 255, 0.45) 0deg 0.9deg,
+    transparent 0.9deg 5deg
+  );
+  mix-blend-mode: screen;
+  transform-origin: 50% 33%;
+  animation: velocidade-zoom 0.5s linear infinite;
+}
+
+@keyframes velocidade-zoom {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  55% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+
 .texto-corrida {
   position: absolute;
-  top: 35%;
+  top: 32.7%;
   left: 0;
   width: 100%;
   height: 7%;
@@ -32,6 +137,7 @@
   pointer-events: none;
   user-select: none;
   will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
 .texto-corrida h2 {
@@ -41,13 +147,119 @@
   font-weight: 400;
   line-height: 0.92;
   letter-spacing: -0.01em;
-  font-size: 140px;
+  font-size: 340px;
   color: #e2231a;
   text-align: center;
   white-space: nowrap;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* modelomc laren*/
+.pilotos {
+  position: absolute;
+  bottom: calc(4% - 2.5vw); 
+  left: 0;
+  width: 100%;
+  z-index: 8; 
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1vw;
+  padding: 2.5vw 4%;
+  overflow-x: auto;
+  overflow-y: visible;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  pointer-events: auto;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+.pilotos::-webkit-scrollbar {
+  display: none;
+}
+
+.piloto {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  flex: 0 0 auto;
+  width: clamp(70px, 7.5vw, 130px);
+}
+
+.piloto:hover {
+  z-index: 20;
+}
+
+.piloto-foto {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.piloto-foto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.05);
+}
+
+.piloto-bandeira {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 9%;
+  margin: 0 auto;
+  display: block;
+  width: 30%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35), 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.piloto-foto .piloto-bandeira {
+  filter: none !important;
+}
+
+.piloto-nome {
+  display: flex;
+  gap: 0.25em;
+}
+
+.piloto-nome span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  color: #e2231a;
+  font-size: clamp(1.3rem, 2.1vw, 2.1rem);
+  letter-spacing: -0.02em;
+  line-height: 0.85;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .pilotos {
+    padding: 5vw 4%;
+    bottom: calc(4% - 5vw);
+    gap: 3vw;
+  }
+
+  .piloto {
+    width: clamp(75px, 19vw, 115px);
+  }
+}
+
+
 .carro-modelo {
   position: absolute;
   top: 17.2%;
@@ -101,35 +313,32 @@
   display: block;
 }
 
-/* simula cada carro "correndo no lugar": fica na mesma posição geral, mas
-   balança bem devagar e suave para frente/trás (esquerda/direita na tela).
-   cada carro tem um delay diferente pra não balançarem todos sincronizados */
 @keyframes correndo-esquerda {
   0%,
   100% {
-    transform: translateX(-2.5%);
+    transform: translateX(-2.5%) translateY(var(--descer, 0%));
   }
   50% {
-    transform: translateX(2.5%);
+    transform: translateX(2.5%) translateY(var(--descer, 0%));
   }
 }
 
 @keyframes correndo-centro {
   0%,
   100% {
-    transform: translateX(calc(-50% - 2.5%));
+    transform: translateX(calc(-50% - 2.5%)) translateY(var(--descer, 0%));
   }
   50% {
-    transform: translateX(calc(-50% + 2.5%));
+    transform: translateX(calc(-50% + 2.5%)) translateY(var(--descer, 0%));
   }
 }
 
 @keyframes correndo-direita {
   0%,
   100% {
-    transform: translateX(2.5%);
+    transform: translateX(2.5%) translateY(var(--descer, 0%));
   }
   50% {
-    transform: translateX(-2.5%);
+    transform: translateX(-2.5%) translateY(var(--descer, 0%));
   }
 }
