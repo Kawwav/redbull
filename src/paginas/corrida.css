@@ -21,10 +21,16 @@
   z-index: 1;
 }
 
+.pista-detalhe-wrapper {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .pista-detalhe {
   position: absolute;
   pointer-events: none;
-  visibility: hidden; 
 }
 
 .pista-asfalto {
@@ -372,9 +378,7 @@
   align-items: flex-start;
   justify-content: center;
   padding-top: 8%;
-  pointer-events: none; /* sem isso, esse div cobre a tela inteira por cima
-    do <Brasil /> (que vem antes dele no DOM) e captura todos os cliques e o
-    hover, mesmo sendo invisível — por isso o vídeo não reagia ao mouse */
+  pointer-events: none;
 }
 
 .cortina-terra {

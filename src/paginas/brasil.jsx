@@ -36,21 +36,16 @@ const PESSOAS = [
   { foto: '/brasil/pessoas/futebol-endrick-bola-1.avif', nome: 'Endrick', sobrenome: '', esporte: 'Futebol' },
 ]
 
-// quantas pessoas aparecem por vez na galeria — começa mostrando só a
-// primeira leva, e cada clique em "Carregar mais" revela mais essa
-// quantidade, até mostrar todo mundo
 const PESSOAS_POR_PAGINA = 15
 
 function Brasil({ brasilRef, galeriaListaRef }) {
   const videoRef = useRef(null)
   const barraRef = useRef(null)
 
-  // Refs do efeito de reveal da bandeira
   const bandeiraContainerRef = useRef(null)
   const reveladaRef = useRef(null)
 
-  // Refs dos wrappers de parallax (texto, bandeira e vídeo se movem em
-  // profundidades diferentes conforme o mouse se move pela tela)
+
   const parallaxTextoRef = useRef(null)
   const parallaxBandeiraRef = useRef(null)
   const parallaxVideoRef = useRef(null)
@@ -74,11 +69,6 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     setQuantidadeVisivel(PESSOAS_POR_PAGINA)
   }
 
-  // sempre que a galeria muda de tamanho (carregar mais / mostrar menos),
-  // a altura de .brasil-scroll-content muda — então o ScrollTrigger que
-  // controla o quanto dá pra rolar (definido em corrida.jsx) precisa
-  // recalcular esse limite, senão ele continua travando no tamanho antigo
-  // e o conteúdo novo fica "escondido" abaixo do ponto onde o scroll para
   useEffect(() => {
     const id = requestAnimationFrame(() => {
       ScrollTrigger.refresh()
@@ -86,8 +76,7 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     return () => cancelAnimationFrame(id)
   }, [quantidadeVisivel])
 
-  // Efeito parallax: cada elemento reage ao movimento do mouse com uma
-  // intensidade e direção diferentes, criando sensação de profundidade
+  // efeito parallax
   useEffect(() => {
     const alvoTexto = parallaxTextoRef.current
     const alvoBandeira = parallaxBandeiraRef.current
@@ -110,7 +99,7 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     const setVideoY = gsap.quickTo(alvoVideo, 'y', opcoesQuickTo)
 
     const aoMoverMouse = (evento) => {
-      // normaliza a posição do mouse pra um intervalo de -0.5 a 0.5
+
       const px = evento.clientX / window.innerWidth - 0.5
       const py = evento.clientY / window.innerHeight - 0.5
 
@@ -126,7 +115,7 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     return () => window.removeEventListener('mousemove', aoMoverMouse)
   }, [])
 
-  // Configuração do efeito de máscara estilo Lando Norris
+
   useEffect(() => {
     const container = bandeiraContainerRef.current
     const revelada = reveladaRef.current
@@ -134,7 +123,6 @@ function Brasil({ brasilRef, galeriaListaRef }) {
 
     const pos = { x: 0, y: 0, size: 0 }
 
-    // Interpolação suave para seguir o cursor sem trancos
     const setX = gsap.quickTo(pos, 'x', {
       duration: 0.35,
       ease: 'power2.out',
@@ -159,9 +147,8 @@ function Brasil({ brasilRef, galeriaListaRef }) {
   pos.x = e.clientX - rect.left
   pos.y = e.clientY - rect.top
 
-      // Abre a máscara suavemente
       gsap.to(pos, {
-        size: 180, // Raio da abertura em pixels
+        size: 180, 
         duration: 0.4,
         ease: 'power2.out',
         onUpdate: atualizarMascara,
@@ -175,7 +162,7 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     }
 
     const aoSair = () => {
-      // Fecha a máscara ao retirar o mouse
+
       gsap.to(pos, {
         size: 0,
         duration: 0.4,
@@ -241,25 +228,17 @@ function Brasil({ brasilRef, galeriaListaRef }) {
     return `${min}:${seg}`
   }
 
-  // calcula em % onde o cursor entrou dentro da foto e guarda isso como
-  // variável CSS no próprio elemento — o CSS usa essa variável como
-  // transform-origin da bolinha, então ela nasce exatamente sob o mouse
-  const aoEntrarNaFoto = (evento) => {
+  const aoMoverNaFoto = (evento) => {
     const rect = evento.currentTarget.getBoundingClientRect()
-    const x = ((evento.clientX - rect.left) / rect.width) * 100
-    const y = ((evento.clientY - rect.top) / rect.height) * 100
-    evento.currentTarget.style.setProperty('--ponto-x', `${x}%`)
-    evento.currentTarget.style.setProperty('--ponto-y', `${y}%`)
+    const x = evento.clientX - rect.left
+    const y = evento.clientY - rect.top
+    evento.currentTarget.style.setProperty('--mx', `${x}px`)
+    evento.currentTarget.style.setProperty('--my', `${y}px`)
   }
 
   return (
     <div ref={brasilRef} className="brasil-cena">
       <div className="brasil-fundo" />
-
-      {/* viewport com overflow oculto: só ele "corta" o conteúdo. dentro
-          dele, brasil-scroll-content é UM bloco só (tela inicial + galeria)
-          que desliza inteiro pra cima — texto, bandeiras, vídeo e fotos
-          sobem juntos, como uma rolagem normal de página */}
       <div className="brasil-scroll-viewport">
         <div ref={galeriaListaRef} className="brasil-scroll-content">
           <div className="brasil-tela-inicial">
@@ -373,9 +352,6 @@ function Brasil({ brasilRef, galeriaListaRef }) {
             </div>
           </div>
 
-          {/* logo abaixo da tela inicial, dentro do MESMO bloco que desliza:
-              a galeria de pessoas, uma do lado da outra, quebrando linha —
-              só mostra um lote por vez, o resto vem clicando em "Carregar mais" */}
           <div className="brasil-galeria-cabecalho">
             <h3 className="brasil-galeria-titulo">Atletas</h3>
             <p className="brasil-galeria-subtitulo">
@@ -386,7 +362,11 @@ function Brasil({ brasilRef, galeriaListaRef }) {
           <div className="brasil-galeria-lista">
             {pessoasVisiveis.map((pessoa, i) => (
               <div className="brasil-pessoa" key={i}>
-                <div className="brasil-pessoa-foto-wrap" onMouseEnter={aoEntrarNaFoto}>
+                <div
+                  className="brasil-pessoa-foto-wrap"
+                  onMouseEnter={aoMoverNaFoto}
+                  onMouseMove={aoMoverNaFoto}
+                >
                   <img
                     src={pessoa.foto}
                     alt={`${pessoa.nome}${pessoa.sobrenome ? ` ${pessoa.sobrenome}` : ''}`}
@@ -394,8 +374,6 @@ function Brasil({ brasilRef, galeriaListaRef }) {
                     draggable={false}
                   />
 
-                  {/* bolinha que nasce do centro da foto no hover, com o
-                      texto subindo letra por letra de um "chão" invisível */}
                   <div className="brasil-pessoa-hover" aria-hidden="true">
                     <span className="brasil-pessoa-hover-texto">
                       {'Saiba mais'.split('').map((letra, li) => (

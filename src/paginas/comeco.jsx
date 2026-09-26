@@ -9,8 +9,6 @@ gsap.registerPlugin(ScrollTrigger)
 const LIMIAR_MOSTRAR_HEADER = 0.85
 const LIMIAR_SOMEM_IMAGENS = 0.3
 const LIMIAR_MOSTRAR_TEXTO = 0.5
-
-// separa em palavras e depois em letras, cada letra dentro de uma máscara
 function dividirEmLetras(texto) {
   const partes = []
   const palavras = texto.split(' ')
@@ -76,7 +74,6 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
   }, [aoMostrarLata])
 
   useEffect(() => {
-    // esconde as letras "no chão" antes de qualquer animação
     if (!mostrarLata) return
 
     const letras = [
@@ -87,16 +84,12 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
 
     gsap.set(letras, { yPercent: 100, opacity: 0 })
 
-    // vídeo do canto começa escondido fora da tela, encostado na parede direita
     if (videoCantoRef.current) {
       gsap.set(videoCantoRef.current, { xPercent: 150 })
     }
   }, [mostrarLata])
 
   useEffect(() => {
-    // desliza o vídeo do canto: entra vindo da direita assim que a lata aparece,
-    // e volta pra fora (direita) quando o scroll chega no ponto em que o texto
-    // de fundo e o header surgem (mesmo limiar do mostrarTexto)
     if (!mostrarLata || !videoCantoRef.current) return
 
     gsap.to(videoCantoRef.current, {

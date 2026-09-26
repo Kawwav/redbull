@@ -215,24 +215,15 @@ const PISTA_PAUSA_FINAL = 0.42
 const CORTINA_DELAY = 0.1
 const CORTINA_DURACAO = PISTA_PAUSA_FINAL - CORTINA_DELAY
 const CORTINA_FIM = PISTA_INICIO + PISTA_DURACAO + PISTA_PAUSA_FINAL
-
-// limiares de xPercent do .corrida-cortina a partir dos quais cada carro (e
-// a pista) já está TOTALMENTE coberto por ela. a cortina cobre a tela da
-// direita pra esquerda: no xPercent X, ela cobre a faixa [X%, 100%] da tela.
-// um elemento só está 100% coberto quando sua borda esquerda (em % da tela)
-// é >= X — por isso cada carro (em posições diferentes) tem seu próprio
-// limiar, calculado a partir da posição/largura dele no corrida.css
-const CORTINA_LIMIAR_CARRO_DIREITA = 59 // .carro-modelo-direita (right: -1%, width 42%)
-const CORTINA_LIMIAR_CARRO_CENTRO = 47 // .carro-modelo-centro (left: 47%)
-const CORTINA_LIMIAR_CARRO_ESQUERDA = 1 // .carro-modelo (left: -5.2%, já ocupa a borda da tela)
-const CORTINA_LIMIAR_PISTA = 1 // .retangulo ocupa a largura toda da tela
+const CORTINA_LIMIAR_CARRO_DIREITA = 59 
+const CORTINA_LIMIAR_CARRO_CENTRO = 47 
+const CORTINA_LIMIAR_CARRO_ESQUERDA = 1 
+const CORTINA_LIMIAR_PISTA = 1 
 
 const ESPACO_ZOOM_DURACAO = 0.75
 const ESPACO_ZOOM_ESCALA = 2.6
 const RESTO_FADE_FRACAO = 0.6
 
-// estado "fora da tela" das 3 nuvens principais — usado tanto pra elas
-// entrarem (do jeito que já era) quanto pra saírem por onde vieram
 const NUVEM1_FORA = { yPercent: 140, opacity: 0 }
 const NUVEM2_FORA = { xPercent: -140, opacity: 0 }
 const NUVEM3_FORA = { yPercent: -140, opacity: 0 }
@@ -262,13 +253,8 @@ const NUVENS_EXTRA = [
   { src: '/imagens/nuvem3.webp', width: '20vw', maxWidth: '280px', minWidth: '44%', top: '4%', left: '58%', entrada: 'cima', atraso: 0.3 },
 ]
 
-// maior atraso entre todas as nuvens, usado pra garantir que sobre scroll
-// suficiente no pin pra última nuvem terminar de entrar (ou de sair)
 const NUVENS_ATRASO_MAX = Math.max(0.2, ...NUVENS_EXTRA.map((n) => n.atraso))
 
-// devolve o estado "fora da tela" (de onde ela vem/pra onde ela volta) e o
-// estado "no lugar" de uma nuvem extra, a partir da direção de entrada dela.
-// usada tanto na entrada quanto na saída (saída = voltar pro estadoInicial)
 function estadosNuvemExtra(entrada) {
   const estadoInicial =
     entrada === 'cima'
@@ -295,23 +281,15 @@ function estadosNuvemExtra(entrada) {
   return { estadoInicial, estadoFinal }
 }
 
-// fim da entrada das nuvens: tela 100% coberta, é a deixa pra terra sumir e
-// o brasil.jsx aparecer por trás, sem o público perceber a troca
 const NUVENS_FIM = CORTINA_FIM + ESPACO_ZOOM_DURACAO * (1 + NUVENS_ATRASO_MAX)
 
 const BRASIL_TRANSICAO_DURACAO = 0.3
 
-// nuvens saem pelas mesmas direções e com os mesmos atrasos relativos que
-// entraram — só que a cortina (terra + nuvens + brasil) continua na escala
-// do zoom, ninguém "desfaz" o zoom aqui
 const NUVENS_SAIDA_INICIO = NUVENS_FIM + BRASIL_TRANSICAO_DURACAO
 const NUVENS_SAIDA_DURACAO = ESPACO_ZOOM_DURACAO
 
 const DURACAO_TOTAL_SEM_GALERIA = NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * (1 + NUVENS_ATRASO_MAX)
 
-// trecho de rolagem extra, reservado só pra deslizar a galeria de pessoas do
-// brasil.jsx pra cima conforme o usuário continua rolando a página (rolagem
-// real, a mesma que controla o resto da cena — não um scroll interno isolado)
 const GALERIA_INICIO = DURACAO_TOTAL_SEM_GALERIA
 const GALERIA_DURACAO = 1.4
 
@@ -495,20 +473,12 @@ function Corrida() {
   const brasilRef = useRef(null)
   const galeriaListaRef = useRef(null)
 
-  // controla se os <Canvas> 3D dos carros e os detalhes animados da pista
-  // ainda são renderizados. eles só desmontam quando a cortina (o "espaço"
-  // vindo da direita) já os cobre de verdade — pra não pesar o site com 3
-  // canvases WebGL e animações CSS infinitas rodando escondidos atrás dela
+  const pistaDetalheWrapperRef = useRef(null)
+
   const [carrosVisiveis, setCarrosVisiveis] = useState({ esquerda: true, centro: true, direita: true })
   const [pistaVisivel, setPistaVisivel] = useState(true)
   const visibilidadeCortinaRef = useRef({ esquerda: true, centro: true, direita: true, pista: true })
 
-  // Efeito parallax nas nuvens: cada nuvem reage ao movimento do mouse com uma
-  // intensidade levemente diferente, dando sensação de profundidade — mesmo
-  // esquema usado no brasil.jsx (texto, bandeira e vídeo). Usa as propriedades
-  // x/y (em px) do gsap, que convivem sem conflito com o xPercent/yPercent/
-  // scale/opacity já controlados pela timeline de scroll (entrada e saída das
-  // nuvens), já que o gsap compõe as duas no mesmo transform.
   useEffect(() => {
     const nuvensPrincipais = [nuvem1Ref.current, nuvem2Ref.current, nuvem3Ref.current].filter(Boolean)
     const nuvensExtras = nuvensExtraRef.current.filter(Boolean)
@@ -520,8 +490,6 @@ function Corrida() {
     const alvos = todasNuvens.map((el, i) => ({
       setX: gsap.quickTo(el, 'x', opcoesQuickTo),
       setY: gsap.quickTo(el, 'y', opcoesQuickTo),
-      // profundidades variadas: nuvens diferentes se movem com intensidades
-      // diferentes, reforçando a sensação de camadas a distâncias distintas
       intensidadeX: 10 + (i % 5) * 5,
       intensidadeY: 6 + (i % 4) * 4,
     }))
@@ -567,9 +535,6 @@ function Corrida() {
           invalidateOnRefresh: true,
           onUpdate: () => {
             if (!cortinaRef.current) return
-            // lê o xPercent real (já animado pelo gsap, com o easing da
-            // cortina) em vez de recalcular, pra saber exatamente quanto da
-            // tela já está coberto neste frame
             const xAtual = gsap.getProperty(cortinaRef.current, 'xPercent')
 
             const novoEstado = {
@@ -661,7 +626,6 @@ function Corrida() {
       )
 
       const retangulo = retanguloRef.current
-      const detalhesPista = gsap.utils.toArray(retangulo.querySelectorAll('.pista-detalhe'))
       gsap.set(retangulo, { transformOrigin: '50% 100%' })
 
       tl.fromTo(
@@ -678,7 +642,7 @@ function Corrida() {
       )
 
       tl.fromTo(
-        detalhesPista,
+        pistaDetalheWrapperRef.current,
         { autoAlpha: 0 },
         { autoAlpha: 1, ease: 'none', duration: PISTA_DURACAO * 0.5 },
         PISTA_INICIO + PISTA_DURACAO * 0.35
@@ -726,11 +690,6 @@ function Corrida() {
       gsap.set(nuvem2Ref.current, NUVEM2_FORA)
       gsap.set(nuvem3Ref.current, NUVEM3_FORA)
 
-      // o .corrida-cortina ganha scale(ESPACO_ZOOM_ESCALA) logo abaixo e esse
-      // zoom nunca é desfeito. como o brasil.jsx é filho dessa mesma div, ele
-      // herdaria o zoom junto — aqui aplicamos o contra-zoom exato (mesmo
-      // transform-origin do pai, escala inversa) pra ele ficar sempre no
-      // tamanho normal, sem depender de nenhum ajuste manual de posição
       gsap.set(brasilRef.current, {
         opacity: 0,
         scale: 1 / ESPACO_ZOOM_ESCALA,
@@ -767,8 +726,6 @@ function Corrida() {
         CORTINA_FIM + ESPACO_ZOOM_DURACAO * 0.2
       )
 
-      // nuvens extras: cada uma entra de um lado (ou só some/aparece, se
-      // for uma nuvem "de meio") pra fechar qualquer vão que sobrar
       NUVENS_EXTRA.forEach((nuvem, i) => {
         const el = nuvensExtraRef.current[i]
         if (!el) return
@@ -783,8 +740,6 @@ function Corrida() {
         )
       })
 
-      // --- tela 100% coberta de nuvem: a terra some e o brasil.jsx aparece
-      // por trás, tudo escondido atrás das nuvens ---
       tl.to(
         terraRef.current,
         { opacity: 0, ease: 'none', duration: BRASIL_TRANSICAO_DURACAO },
@@ -797,10 +752,6 @@ function Corrida() {
         NUVENS_FIM
       )
 
-      // --- nuvens saem pelo mesmo caminho por onde vieram, revelando o
-      // brasil.jsx. a cortina continua na escala do zoom (ESPACO_ZOOM_ESCALA)
-      // o tempo todo — ninguém dá "unzoom" aqui, elas só voltam pro lugar
-      // de onde entraram, no tamanho em que estão ---
       tl.to(
         nuvem1Ref.current,
         { ...NUVEM1_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
@@ -830,11 +781,6 @@ function Corrida() {
         )
       })
 
-      // --- galeria de pessoas (dentro do brasil.jsx): depois que as nuvens
-      // já saíram por completo e a cena do brasil está 100% visível, o
-      // usuário continua rolando a página normalmente (não é um scroll
-      // isolado dentro de uma caixinha) e essa rolagem real desliza a lista
-      // de 30 fotos pra cima, revelando as de baixo aos poucos ---
       if (galeriaListaRef.current) {
         tl.to(
           galeriaListaRef.current,
@@ -865,22 +811,24 @@ function Corrida() {
   return (
     <section ref={corridaRef} className="corrida">
       <div ref={retanguloRef} className="retangulo">
-        {pistaVisivel && (
-          <>
-            <div className="pista-detalhe pista-asfalto" />
-            <svg
-              className="pista-detalhe pista-svg"
-              viewBox="0 0 1000 1000"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path className="pista-kerb-branco" d={PISTA_CAMINHO} />
-              <path className="pista-kerb-vermelho" d={PISTA_CAMINHO} />
-              <path className="pista-rua" d={PISTA_CAMINHO} />
-              <path className="pista-linha-central" d={PISTA_CAMINHO} />
-            </svg>
-          </>
-        )}
+        <div ref={pistaDetalheWrapperRef} className="pista-detalhe-wrapper">
+          {pistaVisivel && (
+            <>
+              <div className="pista-detalhe pista-asfalto" />
+              <svg
+                className="pista-detalhe pista-svg"
+                viewBox="0 0 1000 1000"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <path className="pista-kerb-branco" d={PISTA_CAMINHO} />
+                <path className="pista-kerb-vermelho" d={PISTA_CAMINHO} />
+                <path className="pista-rua" d={PISTA_CAMINHO} />
+                <path className="pista-linha-central" d={PISTA_CAMINHO} />
+              </svg>
+            </>
+          )}
+        </div>
       </div>
 
       <div ref={textoRef} className="texto-corrida">

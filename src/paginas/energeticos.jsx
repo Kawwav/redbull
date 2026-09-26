@@ -23,8 +23,6 @@ function Energeticos({
   const colunaEsquerdaRef = useRef(null)
   const colunaDireitaRef = useRef(null)
   const [pousou, setPousou] = useState(false)
-  // só depois que os quadrados secundários já estão totalmente revelados
-  // (mesmo critério do "pousou" da lata central) é que o hover deles passa a valer
   const [revelado, setRevelado] = useState(false)
 
   useEffect(() => {
@@ -38,10 +36,9 @@ function Energeticos({
         scrub: 1,
         pin: pinRef.current,
         onUpdate: (self) => {
-          // fase 1 (0 -> 1): a queda/pouso da lata, igual antes — só que agora
-          // ocupa só a primeira parte do scroll total da seção
+
           const progressoQueda = Math.min(1, self.progress / FASE_QUEDA_FIM)
-          // fase 2 (0 -> 1): textos saindo, lata sumindo, quadrados se revelando
+
           const progressoRevelacao = Math.min(
             1,
             Math.max(0, (self.progress - FASE_QUEDA_FIM) / (1 - FASE_QUEDA_FIM))
@@ -77,8 +74,6 @@ function Energeticos({
             opacity: 1 - progressoRevelacao,
           })
 
-          // quadrados escondidos atrás do quadro-menu: saem de trás dele e se
-          // alinham do lado, lado a lado, como um carrossel
           gsap.set(quadroEsquerdaRef.current, {
             xPercent: progressoRevelacao * -115,
             opacity: progressoRevelacao,
@@ -94,7 +89,7 @@ function Energeticos({
     return () => ctx.revert()
   }, [energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref, hoverCan3Ref, hoverCan4Ref])
 
-  // pequeno "aceno" no botão ao clicar, só decorativo
+
   const aoClicarBotao = () => {
     gsap.fromTo(botaoRef.current, { scale: 0.94 }, { scale: 1, duration: 0.35, ease: 'back.out(3)' })
   }
@@ -149,7 +144,7 @@ function Energeticos({
               ref={quadroRef}
               className={`quadro-menu${pousou ? ' pousou' : ''}`}
               onMouseEnter={() => {
-                // só reage ao hover depois que a lata (can_2_blue) já pousou ali dentro
+
                 if (pousou && hoverCan2Ref) hoverCan2Ref.current = true
               }}
               onMouseLeave={() => {

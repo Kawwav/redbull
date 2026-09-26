@@ -33,7 +33,6 @@
   user-select: none;
 }
 
-/* letra escondida dentro da máscara até o gsap subir ela */
 .mascara {
   display: inline-block;
   overflow: hidden;
@@ -72,18 +71,16 @@
   left: 34.74%;
   width: 30.16%;
   height: 20.56%;
-  z-index: 10; /* abaixo do modelo 3D (.modelo tem z-index: 30) */
+  z-index: 10;
 }
 
 .redbull {
-  /* fixed (não mais absolute): agora é renderizado fora da .comeco, como irmão
-     do .modelo, então precisa se posicionar relativo à tela, não a um pai local */
   position: fixed;
   top: 60.17%;
   left: 32.82%;
   width: 36.2%;
   height: 15.46%;
-  z-index: 40; /* acima do modelo 3D (.modelo tem z-index: 30) */
+  z-index: 40; 
   pointer-events: none;
 }
 

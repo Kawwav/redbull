@@ -16,7 +16,6 @@ const ESCALA_FINAL = 7.5
 
 const POSICAO_Y_FINAL = -0.4
 
-// balanço contínuo e sutil da lata, sempre ligado
 const AMPLITUDE_BALANCO_LATA_X = 0.035
 const AMPLITUDE_BALANCO_LATA_Y = 0.05
 const AMPLITUDE_BALANCO_LATA_Z = 0.03
@@ -30,26 +29,25 @@ const VELOCIDADE_FLUTUACAO_LATA_Y = 0.48
 const VELOCIDADE_FLUTUACAO_LATA_X = 0.33
 
 // mortal
-const LIMIAR_INICIO_MORTAL_COMECO = 0.92 // só nos últimos 8% do scroll da comeco
-const PESO_MORTAL_COMECO = 0.25 // fração do giro que acontece ainda dentro da comeco
-const LIMIAR_FIM_MORTAL_ENERGETICOS = 0.4 // o resto do giro se completa até 40% do scroll da energeticos
-const VOLTAS_MORTAL = 1 // 1 volta completa = um mortal
-const SENTIDO_MORTAL = -1 // -1 = mortal "pra trás", 1 = "pra frente"
-const SUAVIDADE_MORTAL = 0.028 // quanto menor, mais suave/lento e "de vagar" o giro
+const LIMIAR_INICIO_MORTAL_COMECO = 0.92 
+const PESO_MORTAL_COMECO = 0.25 
+const LIMIAR_FIM_MORTAL_ENERGETICOS = 0.4 
+const VOLTAS_MORTAL = 1 
+const SUAVIDADE_MORTAL = 0.028 
 const SUAVIDADE_QUEDA_POSICAO = 0.045
 const SUAVIDADE_QUEDA_ESCALA = 0.06
-const SUAVIDADE_POUSO_SUMIR = 0.025 // bem mais lenta: dá aquele "delay" suave depois que ela pousa/afunda/some (e volta assim também)
-const ESCALA_POUSO_NO_QUADRO = 6.2 // escala final da lata já "dentro" do quadro — maior que a caixa de propósito, pra "vazar" um pouco pra fora
-const OFFSET_Y_POUSO = -0.19 // desloca a lata pra baixo no ponto final (dentro do quadro-menu)
-const LIMIAR_TRAVAR_POUSO = 0.97 // a partir daqui a lata "trava" exatamente no alvo, sem escapar do quadro
-const LIMIAR_ESCALA_ESCONDER_CAN1 = 0.03 // abaixo disso a lata 1 já está praticamente invisível de tão pequena
-const INCLINACAO_POUSO_X = 0.16 // inclinação diagonal (eixo x) aplicada só no pouso, dentro do quadro
-const INCLINACAO_POUSO_Z = -0.4 // inclinação diagonal (eixo z) aplicada só no pouso, dentro do quadro
-const AFUNDAMENTO_SUMIR = 2.8 // o quanto a lata desce (eixo y) enquanto some, na 2ª fase da energeticos
+const SUAVIDADE_POUSO_SUMIR = 0.025 
+const ESCALA_POUSO_NO_QUADRO = 6.2 
+const OFFSET_Y_POUSO = -0.19 
+const LIMIAR_TRAVAR_POUSO = 0.97 
+const LIMIAR_ESCALA_ESCONDER_CAN1 = 0.03 
+const INCLINACAO_POUSO_X = 0.16 
+const INCLINACAO_POUSO_Z = -0.4 
+const AFUNDAMENTO_SUMIR = 2.8 
 const PLANO_PROFUNDIDADE_QUEDA = 0
 
-const INICIO_FADE_AVIAO = 0.05 // a partir de quantos % do scroll da comeco ele começa a aparecer
-const FIM_FADE_AVIAO = 0.2 // com quantos % do scroll ele já está 100% visível/orbitando
+const INICIO_FADE_AVIAO = 0.05 
+const FIM_FADE_AVIAO = 0.2 
 
 const ESCALA_AVIAO = 0.2
 
@@ -69,46 +67,41 @@ const INCLINACAO_VERTICAL_AVIAO = 0.35
 
 const OFFSET_ROTACAO_AVIAO = Math.PI / 2
 
-// eixo local em que a hélice gira (nariz do avião no X negativo)
+
 const EIXO_ROTACAO_HELICE = 'x'
 const VELOCIDADE_ROTACAO_HELICE = 18 // rad/s
 
-// usados só no fallback, quando o .glb não tem a hélice separada
 const HELICE_FALLBACK_POSICAO = [-0.82, 0, 0]
 const HELICE_FALLBACK_TAMANHO = 0.22
 
-const QUEDA_CAN2_Y_INICIAL = POSICAO_Y_FINAL + 4.5 // começa bem acima da tela, fora de vista
-const OFFSET_Y_CAN2 = 0.37 // ajusta a altura final dela (positivo = mais pra cima); mexa aqui até encaixar no quadrado do meio
-const ROTACAO_Y_CAN2 = 0 // "frente" do modelo can_2 — ajuste até ficar de frente pra câmera
-const LIMIAR_INICIO_QUEDA_CAN2 = 0.5 // só começa a cair depois que a lata 1 já percorreu metade do caminho — evita as duas se cruzarem no meio da tela
+const QUEDA_CAN2_Y_INICIAL = POSICAO_Y_FINAL + 4.5
+const OFFSET_Y_CAN2 = 0.37 
+const ROTACAO_Y_CAN2 = 0 
+const LIMIAR_INICIO_QUEDA_CAN2 = 0.5 
 const SUAVIDADE_QUEDA_CAN2_POSICAO = 0.05
 const SUAVIDADE_QUEDA_CAN2_ESCALA = 0.06
-// o modelo can_2_blue.glb tem um "tamanho nativo" diferente do can_1 — esse
-// fator corrige isso pra ela ficar do mesmo tamanho visual que a lata 1.
-// diminua se ainda estiver maior, aumente se ficar menor que a lata 1
+
 const FATOR_ESCALA_CAN2 = 0.6
 const ESCALA_FINAL_CAN2 = ESCALA_FINAL * FATOR_ESCALA_CAN2
 
-// hover no quadro-menu (só depois que o can_2 já pousou lá dentro): dá uma
-// volta completa em Y e termina "torta" numa inclinação diagonal (X + Z)
-const VOLTA_HOVER_CAN2 = Math.PI * 2 // 360°
+const VOLTA_HOVER_CAN2 = Math.PI * 2 
 const INCLINACAO_TORTA_X_CAN2 = 0.32
 const INCLINACAO_TORTA_Z_CAN2 = -0.4
 const DURACAO_GIRO_HOVER_CAN2 = 0.9
 
-const ESCALA_LATERAL_BASE = 4.2 // escala "de referência" das latas laterais
-const FATOR_ESCALA_CAN3 = 1 // ajuste até o can_3_green.glb ficar do tamanho visual desejado
-const FATOR_ESCALA_CAN4 = 1 // idem, pro can_4_peach.glb
+const ESCALA_LATERAL_BASE = 4.2
+const FATOR_ESCALA_CAN3 = 1 
+const FATOR_ESCALA_CAN4 = 1 
 const ESCALA_FINAL_CAN3 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN3
 const ESCALA_FINAL_CAN4 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN4
 
-const ROTACAO_Y_CAN3 = 0 // "frente" do can_3 — ajuste até ficar de frente pra câmera
-const ROTACAO_Y_CAN4 = 0 // idem, pro can_4
+const ROTACAO_Y_CAN3 = 0 
+const ROTACAO_Y_CAN4 = 0 
 
 const OFFSET_Y_CAN3 = 0 // ajuste fino de altura dentro do quadrado esquerdo
 const OFFSET_Y_CAN4 = 0 // ajuste fino de altura dentro do quadrado direito
 
-// segue o quadrado (que já está se movendo via GSAP) com uma leve suavização
+
 const SUAVIDADE_LATERAL_POSICAO = 0.08
 const SUAVIDADE_LATERAL_ESCALA = 0.07
 
@@ -170,10 +163,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
   const balancoRef = useRef(null)
   const mortalRef = useRef(null)
   const primitiveRef = useRef(null)
-  // controla se a lata 1 ainda é desenhada: assim que ela encolhe o
-  // suficiente (já pousou e está sumindo pra dar lugar à can_2_blue) ela
-  // some de vez (visible=false), pro three.js parar de desenhá-la e não
-  // pesar o site à toa
+
   const [visivel, setVisivel] = useState(true)
   const escondidoRef = useRef(false)
 
@@ -185,8 +175,6 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
   )
   const alvoQueda = useMemo(() => new THREE.Vector3(), [])
 
-  // converte o centro do .quadro-menu (posição na tela, em px) pra um ponto 3D
-  // no mesmo plano de profundidade em que a lata vive
   const obterPosicaoAlvoQueda = (camera, size) => {
     const elemento = quadroRef?.current
     if (!elemento || !camera || !size) return null
@@ -213,7 +201,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     grupoRef.current.rotation.y = ROTACAO_Y_INICIAL
     grupoRef.current.rotation.z = INCLINACAO_Z
 
-    // nasce de baixo pra cima
+
     gsap.fromTo(
       grupoRef.current.position,
       { y: -2.4 },
@@ -309,9 +297,6 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
         primitiveRef.current.scale.setScalar(novaEscala)
       }
 
-      // só esconde de vez depois que ela já pousou e está na fase de sumir
-      // (progressoSumir > 0) e já encolheu o suficiente pra ninguém notar o
-      // sumiço — evita esconder ela ainda "grande" por engano
       const deveEsconder = progressoSumir > 0 && novaEscala < LIMIAR_ESCALA_ESCONDER_CAN1
       if (deveEsconder !== escondidoRef.current) {
         escondidoRef.current = deveEsconder
@@ -397,8 +382,7 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
     const progressoEnergeticos = energeticosProgressRef?.current ?? 0
 
     const bruto = (progresso - INICIO_FADE_AVIAO) / (FIM_FADE_AVIAO - INICIO_FADE_AVIAO)
-    // assim que entramos na "energeticos" (progressoEnergeticos > 0), o avião
-    // já não deve mais aparecer — sem depender do quanto a lata já pousou
+
     const emEnergeticos = progressoEnergeticos > 0
     const t = emEnergeticos ? 0 : Math.min(1, Math.max(0, bruto))
 
@@ -462,22 +446,14 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
   )
 }
 
-// segunda lata: some no topo da tela e cai até pousar no lugar em que a
-// primeira lata ficava em repouso, no mesmo ritmo em que a primeira cai
-// rumo ao quadro-menu (mesmo progressoQueda / energeticosProgressRef)
 function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
   const { scene } = useGLTF('/3d/can_2_blue.glb')
   const grupoRef = useRef(null)
   const grupoEscalaRef = useRef(null)
-  // grupo próprio só pra rotação do hover, separado da rotação "de repouso"
-  // que o grupoRef já carrega — assim uma não briga com a outra
+
   const grupoGiroHoverRef = useRef(null)
   const hoverAnteriorRef = useRef(false)
 
-  // usados pra projetar a posição REAL do .quadro-menu na tela (em vez de um
-  // alvo fixo) — assim, quando a seção "energeticos" despina (scroll indo
-  // pra "corrida") e o quadro sai do lugar, a lata acompanha e some junto,
-  // em vez de ficar flutuando fixa por cima da seção seguinte
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const planoQueda = useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANO_PROFUNDIDADE_QUEDA),
@@ -489,8 +465,7 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
     if (!grupoRef.current) return
 
     grupoRef.current.position.y = QUEDA_CAN2_Y_INICIAL
-    // mesma pose de repouso que a lata 1 tinha antes de cair (já de frente e
-    // sem inclinação), mas usando a rotação de frente própria do can_2
+
     grupoRef.current.rotation.x = 0
     grupoRef.current.rotation.y = ROTACAO_Y_CAN2
     grupoRef.current.rotation.z = 0
@@ -504,19 +479,12 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
     if (!grupoRef.current || !grupoEscalaRef.current) return
 
     const progressoQueda = energeticosProgressRef?.current ?? 0
-    // remapeia: só sai do 0 depois que a lata 1 já passou do limiar, e chega
-    // em 1 junto com ela — assim a lata 2 "aguarda" a lata 1 se afastar do
-    // centro antes de começar a descer, sem as duas se cruzarem/tocarem
+
     const progressoCan2 = Math.min(
       1,
       Math.max(0, (progressoQueda - LIMIAR_INICIO_QUEDA_CAN2) / (1 - LIMIAR_INICIO_QUEDA_CAN2))
     )
 
-    // desce do topo da tela até o lugar real do .quadro-menu na tela — em vez
-    // de um alvo fixo, projeta a posição atual do elemento (que pode estar
-    // pinado, parado no meio de uma transição de pin, ou já despinado e
-    // saindo de tela) pro mesmo plano 3D em que a lata vive. Assim ela
-    // "gruda" no quadrado o tempo todo, inclusive quando ele sai da tela
     const posicaoQuadro = obterPosicaoElementoNoMundo(
       quadroRef,
       state.camera,
@@ -537,25 +505,17 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
     grupoRef.current.position.y +=
       (alvoY - grupoRef.current.position.y) * SUAVIDADE_QUEDA_CAN2_POSICAO
 
-    // "cresce" enquanto cai — esse multiplicador (0 -> 1) fica num grupo por
-    // fora do <Center>, que já mede o modelo com a escala final fixa (assim
-    // o centro calculado pelo <Center> fica correto e ela some centralizada,
-    // em vez de descentralizar conforme ela cresce)
+
     const fracaoAlvo = progressoCan2 > 0 ? 1 : 0
     const fracaoAtual = grupoEscalaRef.current.scale.x
     const novaFracao = fracaoAtual + (fracaoAlvo - fracaoAtual) * SUAVIDADE_QUEDA_CAN2_ESCALA
     grupoEscalaRef.current.scale.setScalar(novaFracao)
-
-    // hover do quadro-menu: só dispara a animação na transição (borda de
-    // subida ou descida), nunca a cada frame — e só existe depois que ela
-    // já pousou (energeticos.jsx só liga hoverCan2Ref quando .pousou)
     const hoverAtual = hoverCan2Ref?.current ?? false
     if (hoverAtual !== hoverAnteriorRef.current && grupoGiroHoverRef.current) {
       hoverAnteriorRef.current = hoverAtual
       gsap.killTweensOf(grupoGiroHoverRef.current.rotation)
 
       if (hoverAtual) {
-        // uma volta completa (360°) e termina torta na diagonal
         gsap.to(grupoGiroHoverRef.current.rotation, {
           y: `+=${VOLTA_HOVER_CAN2}`,
           x: INCLINACAO_TORTA_X_CAN2,
@@ -564,8 +524,6 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
           ease: 'power2.inOut',
         })
       } else {
-        // mesmo movimento, só que ao contrário: desfaz a volta em y (-360°)
-        // junto com a inclinação, na mesma duração da entrada
         gsap.to(grupoGiroHoverRef.current.rotation, {
           y: `-=${VOLTA_HOVER_CAN2}`,
           x: 0,
@@ -590,11 +548,6 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
   )
 }
 
-// lata que vive dentro de um dos quadrados secundários (esquerda ou direita),
-// que só se revelam na fase 2 do scroll da energeticos. Segue a posição do
-// próprio quadrado na tela (que já está se movendo via GSAP) projetando o
-// centro dele pro mesmo plano 3D em que as outras latas vivem, e cresce a
-// partir de 0 junto com o progresso da revelação
 function LataLateral({
   caminhoModelo,
   elementoRef,
@@ -609,18 +562,9 @@ function LataLateral({
   const { scene } = useGLTF(caminhoModelo)
   const grupoRef = useRef(null)
   const grupoEscalaRef = useRef(null)
-  // grupo próprio só pra rotação do hover, separado da rotação "de repouso"
-  // que o grupoRef já carrega — mesma ideia da lata do meio (can_2)
   const grupoGiroHoverRef = useRef(null)
   const hoverAnteriorRef = useRef(false)
-  // lembra se, no frame anterior, ela já estava "livre" do quadro central —
-  // usado só pra detectar a borda exata em que ela passa a poder aparecer
   const jaLivreRef = useRef(false)
-  // guarda o progresso da revelação no frame anterior, só pra saber se o
-  // scroll está avançando ou voltando — o "salto" de entrada só pode
-  // acontecer indo pra frente; voltando, ela só precisa encolher de volta
-  // (senão, qualquer oscilação do scroll perto da borda faz ela "pular" de
-  // novo pro ponto de entrada, e não voltar suavemente pro centro)
   const progressoAnteriorRef = useRef(0)
 
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
@@ -653,13 +597,6 @@ function LataLateral({
       alvo
     )
 
-    // o canvas 3D é uma única camada por cima de TODOS os quadrados (é por
-    // isso que a lata do meio "sai" na frente do quadro-menu). Então, mesmo
-    // com a lata lateral no lugar certo, se o quadrado dela ainda estiver
-    // sobrepondo o quadro do meio (no início da revelação, os 2 nascem
-    // exatamente empilhados no mesmo lugar) ela apareceria por cima do
-    // quadro central. Por isso ela só fica "livre" quando o próprio
-    // retângulo (em tela) já não sobrepõe mais o retângulo do quadro central
     const retLateral = elementoRef?.current?.getBoundingClientRect()
     const retCentral = elementoCentralRef?.current?.getBoundingClientRect()
     const prontoParaComparar =
@@ -670,9 +607,6 @@ function LataLateral({
     const livreDoCentro =
       prontoParaComparar && (retLateral.right <= retCentral.left || retLateral.left >= retCentral.right)
 
-    // só considera "entrando" (avançando) se o progresso realmente cresceu
-    // desde o frame anterior — evita disparar a entrada de novo por causa de
-    // ruído/scrub quando o scroll está, na real, voltando
     const avancando = progressoRevelacao > progressoAnteriorRef.current
 
     if (posicaoMundo) {
@@ -680,12 +614,6 @@ function LataLateral({
       const alvoY = posicaoMundo.y + offsetY + oscilacaoY
 
       if (livreDoCentro && !jaLivreRef.current && avancando) {
-        // acabou de ficar livre agora: nasce um pouco mais pra fora, no
-        // sentido do próprio lado (esquerda entra vindo de mais à esquerda,
-        // direita vindo de mais à direita) — mas só uma fração da largura
-        // real do próprio quadrado, pra entrada ficar contida perto/dentro
-        // dele, não vindo de fora da tela. A partir daqui o lerp abaixo
-        // cuida de deslizá-la de fora pra dentro do quadrado
         const larguraCaixaMundo =
           obterLarguraElementoNoMundo(elementoRef, state.camera, state.size, raycaster, planoQueda, alvo) ?? 0
         grupoRef.current.position.x = alvoX + larguraCaixaMundo * FRACAO_ENTRADA_LATERAL * sentidoEntrada
@@ -698,10 +626,6 @@ function LataLateral({
 
     jaLivreRef.current = livreDoCentro
     progressoAnteriorRef.current = progressoRevelacao
-
-    // hover do próprio quadrado secundário: só dispara a animação na
-    // transição (borda de subida ou descida), nunca a cada frame — mesma
-    // lógica do hover da lata do meio (can_2)
     const hoverAtual = hoverRef?.current ?? false
     if (hoverAtual !== hoverAnteriorRef.current && grupoGiroHoverRef.current) {
       hoverAnteriorRef.current = hoverAtual
@@ -726,8 +650,6 @@ function LataLateral({
       }
     }
 
-    // até ficar livre do quadro central, fica travada em escala 0 ("escondida
-    // atrás" dele); depois disso cresce acompanhando o progresso da revelação
     const fracaoAlvo = livreDoCentro ? progressoRevelacao : 0
     const fracaoAtual = grupoEscalaRef.current.scale.x
     const novaFracao = fracaoAtual + (fracaoAlvo - fracaoAtual) * SUAVIDADE_LATERAL_ESCALA
