@@ -76,7 +76,7 @@ const HELICE_FALLBACK_POSICAO = [-0.82, 0, 0]
 const HELICE_FALLBACK_TAMANHO = 0.22
 
 const QUEDA_CAN2_Y_INICIAL = POSICAO_Y_FINAL + 4.5
-const OFFSET_Y_CAN2 = 0.37 
+const OFFSET_Y_CAN2 = 0.02
 const ROTACAO_Y_CAN2 = 0 
 const LIMIAR_INICIO_QUEDA_CAN2 = 0.5 
 const SUAVIDADE_QUEDA_CAN2_POSICAO = 0.05
@@ -105,9 +105,6 @@ const OFFSET_Y_CAN4 = 0 // ajuste fino de altura dentro do quadrado direito
 
 const SUAVIDADE_LATERAL_POSICAO = 0.08
 const SUAVIDADE_LATERAL_ESCALA = 0.07
-
-const AMPLITUDE_FLUTUACAO_LATERAL_Y = 0.04
-const VELOCIDADE_FLUTUACAO_LATERAL_Y = 0.6
 
 const VOLTA_HOVER_LATERAL = Math.PI * 2 // 360°
 const INCLINACAO_TORTA_X_LATERAL = 0.32
@@ -586,8 +583,6 @@ function LataLateral({
     if (!grupoRef.current || !grupoEscalaRef.current) return
 
     const progressoRevelacao = revelacaoProgressRef?.current ?? 0
-    const tempo = state.clock.getElapsedTime()
-    const oscilacaoY = Math.sin(tempo * VELOCIDADE_FLUTUACAO_LATERAL_Y) * AMPLITUDE_FLUTUACAO_LATERAL_Y
 
     const posicaoMundo = obterPosicaoElementoNoMundo(
       elementoRef,
@@ -612,7 +607,7 @@ function LataLateral({
 
     if (posicaoMundo) {
       const alvoX = posicaoMundo.x
-      const alvoY = posicaoMundo.y + offsetY + oscilacaoY
+      const alvoY = posicaoMundo.y + offsetY
 
       if (livreDoCentro && !jaLivreRef.current && avancando) {
         const larguraCaixaMundo =

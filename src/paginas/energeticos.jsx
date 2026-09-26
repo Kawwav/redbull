@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
 import './energeticos.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -25,10 +26,10 @@ function Energeticos({
   const [pousou, setPousou] = useState(false)
   const [revelado, setRevelado] = useState(false)
 
-  useEffect(() => {
-    if (!rolagemRef.current || !pinRef.current) return
+  useGSAP(
+    () => {
+      if (!rolagemRef.current || !pinRef.current) return
 
-    const ctx = gsap.context(() => {
       ScrollTrigger.create({
         trigger: rolagemRef.current,
         start: 'top top',
@@ -84,10 +85,14 @@ function Energeticos({
           })
         },
       })
-    }, rolagemRef)
 
-    return () => ctx.revert()
-  }, [energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref, hoverCan3Ref, hoverCan4Ref])
+      ScrollTrigger.refresh()
+    },
+    {
+      scope: rolagemRef,
+      dependencies: [energeticosProgressRef, revelacaoProgressRef, hoverCan2Ref, hoverCan3Ref, hoverCan4Ref],
+    }
+  )
 
 
   const aoClicarBotao = () => {

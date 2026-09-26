@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { useGSAP } from '@gsap/react'
 import Header from '../componentes/header.jsx'
 import './comeco.css'
 
@@ -45,8 +46,11 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
   const videoCantoRef = useRef(null)
 
   useEffect(() => {
-    document.body.style.overflow = mostrarLata ? '' : 'hidden'
+    const valor = mostrarLata ? '' : 'hidden'
+    document.documentElement.style.overflow = valor
+    document.body.style.overflow = valor
     return () => {
+      document.documentElement.style.overflow = ''
       document.body.style.overflow = ''
     }
   }, [mostrarLata])
@@ -64,12 +68,33 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
       aoMostrarLata()
     }
 
+    // trava de segurança: se o navegador bloquear o autoplay, o arquivo
+    // falhar ao carregar, ou o evento "ended" simplesmente não disparar,
+    // o scroll não pode ficar travado pra sempre esperando o vídeo acabar
+    const TEMPO_MAXIMO_ESPERA_MS = 8000
+    const tempoSeguranca = setTimeout(congelarUltimoFrame, TEMPO_MAXIMO_ESPERA_MS)
+
+    const aoTerminar = () => {
+      clearTimeout(tempoSeguranca)
+      congelarUltimoFrame()
+    }
+
+    const aoDarErro = () => {
+      clearTimeout(tempoSeguranca)
+      congelarUltimoFrame()
+    }
+
     video.addEventListener('loadedmetadata', acelerar)
-    video.addEventListener('ended', congelarUltimoFrame)
+    video.addEventListener('ended', aoTerminar)
+    video.addEventListener('error', aoDarErro)
+    video.addEventListener('stalled', aoDarErro)
 
     return () => {
+      clearTimeout(tempoSeguranca)
       video.removeEventListener('loadedmetadata', acelerar)
-      video.removeEventListener('ended', congelarUltimoFrame)
+      video.removeEventListener('ended', aoTerminar)
+      video.removeEventListener('error', aoDarErro)
+      video.removeEventListener('stalled', aoDarErro)
     }
   }, [aoMostrarLata])
 
@@ -128,11 +153,11 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
     animar(letrasLateral)
   }, [mostrarTexto, mostrarLata])
 
-  useEffect(() => {
-    if (!mostrarLata) return
-    if (!scrollWrapperRef.current || !comecoRef.current) return
+  useGSAP(
+    () => {
+      if (!mostrarLata) return
+      if (!scrollWrapperRef.current || !comecoRef.current) return
 
-    const ctx = gsap.context(() => {
       const config = {
         trigger: scrollWrapperRef.current,
         start: 'top top',
@@ -160,10 +185,13 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
           setMostrarHeader(self.progress >= LIMIAR_MOSTRAR_HEADER)
         },
       })
-    }, scrollWrapperRef)
 
-    return () => ctx.revert()
-  }, [mostrarLata, scrollProgressRef, redbullRef])
+      // garante que o pin/scroll seja recalculado assim que o vídeo some
+      // e as novas seções (com imagens, textos e o vídeo de canto) entram no DOM
+      ScrollTrigger.refresh()
+    },
+    { scope: scrollWrapperRef, dependencies: [mostrarLata, scrollProgressRef, redbullRef] }
+  )
 
   return (
     <>

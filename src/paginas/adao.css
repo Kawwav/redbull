@@ -3,14 +3,82 @@
   width: 100%;
   height: 100svh;
   overflow: hidden;
-  background: #002776;
 }
 
 .adao-fundo {
+  margin-top: 1.944vh;
   position: absolute;
   inset: 0;
-  background-image: url('/adao/desenho.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.adao-personagem {
+  position: absolute;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+  user-select: none;
+}
+
+.adao-parallax {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.adao-personagem-adao {
+  top: 66%;
+  left: -20%;
+  width: 94.79vw;
+  transform: translateY(-50%);
+}
+
+.adao-personagem-redbull {
+  top: 50%;
+  left: 42%;
+  width: 10vw;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.adao-personagem-redbull canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.adao-personagem-deus {
+  /* 2800px numa tela de 1920px de largura = 145.83vw */
+  --deus-largura: 145.83vw;
+  --deus-topo: 54.6%;
+  --deus-esquerda: 78%;
+
+  top: var(--deus-topo);
+  left: var(--deus-esquerda);
+  width: var(--deus-largura);
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 900px) {
+  .adao-personagem-adao {
+    left: 2%;
+    width: min(260px, 46vw);
+  }
+
+  .adao-personagem-redbull {
+    left: 50%;
+    width: min(140px, 30vw);
+  }
+
+  .adao-personagem-deus {
+    --deus-largura: min(260px, 46vw);
+    --deus-esquerda: 80%;
+  }
 }

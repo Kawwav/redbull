@@ -125,7 +125,7 @@
   position: fixed;
   bottom: 64px;
   right: 74px;
-  width: min(320px, 20vw);
+  width: min(520px, 20vw);
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 12px;
