@@ -73,6 +73,24 @@
   transform: translate(-50%, -50%);
 }
 
+.adao-nuvens {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.adao-nuvem {
+  position: absolute;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+
 @media (max-width: 900px) {
   .adao-personagem-adao {
     left: 2%;
@@ -88,4 +106,9 @@
     --deus-largura: min(260px, 46vw);
     --deus-esquerda: 80%;
   }
+
+  .adao-nuvem {
+    width: 46vw !important;
+  }
+
 }

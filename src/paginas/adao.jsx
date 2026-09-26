@@ -1,34 +1,12 @@
-import { Suspense, useRef, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Bounds, Center, useGLTF } from '@react-three/drei'
+import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
 import './adao.css'
 
-function ModeloRedbull(props) {
-  const grupoRef = useRef(null)
-  const { scene } = useGLTF('/3d/redbull_otimizado.glb')
-
-  // parado no lugar, só balançando: sobe/desce e gira levemente para os lados
-  useFrame(({ clock }) => {
-    if (grupoRef.current) {
-      grupoRef.current.position.y = Math.sin(clock.elapsedTime * 0.8) * 0.05
-      grupoRef.current.rotation.y = Math.sin(clock.elapsedTime * 0.5) * 0.3
-    }
-  })
-
-  return (
-    <group ref={grupoRef} {...props}>
-
-      <Center>
-        <primitive object={scene} />
-      </Center>
-    </group>
-  )
-}
-
-useGLTF.preload('/3d/redbull_otimizado.glb')
-
-function Adao({ entradaRef }) {
+// o modelo 3d do redbull não é mais renderizado aqui: essa div vira só uma
+// "âncora" (posição/tamanho na tela) que o canvas 3d global (AdaoRedbull3D,
+// montado lá no App.jsx) persegue via raycast, pra poder sair daqui e viajar
+// até o footer conforme o scroll
+function Adao({ entradaRef, redbullAnchorRef }) {
   const parallaxAdaoRef = useRef(null)
   const parallaxRedbullRef = useRef(null)
   const parallaxDeusRef = useRef(null)
@@ -136,27 +114,11 @@ function Adao({ entradaRef }) {
 
       <div ref={parallaxRedbullRef} className="adao-parallax">
         <div ref={entradaRedbullElRef} className="adao-entrada">
-          <div className="adao-personagem adao-personagem-redbull">
-            <Canvas
-              camera={{ fov: 35 }}
-              gl={{ alpha: true }}
-              dpr={[1, 2]}
-              style={{ pointerEvents: 'none' }}
-            >
-              <ambientLight intensity={5} />
-              <directionalLight position={[3, 5, 2]} intensity={2.5} />
-              <directionalLight position={[-3, 5, 2]} intensity={2.5} />
-              <directionalLight position={[3, -5, 2]} intensity={2} />
-              <directionalLight position={[-3, -5, 2]} intensity={2} />
-              <directionalLight position={[0, 0, 5]} intensity={2} />
-              <directionalLight position={[0, 0, -5]} intensity={2} />
-              <Suspense fallback={null}>
-                <Bounds fit clip observe margin={1.2}>
-                  <ModeloRedbull />
-                </Bounds>
-              </Suspense>
-            </Canvas>
-          </div>
+          <div
+            ref={redbullAnchorRef}
+            className="adao-personagem adao-personagem-redbull"
+            aria-hidden="true"
+          />
         </div>
       </div>
 

@@ -301,6 +301,11 @@ const CORTINA_ADAO_DURACAO = 0.9
 
 const DURACAO_TOTAL = DURACAO_TOTAL_SEM_GALERIA + GALERIA_DURACAO + CORTINA_ADAO_DURACAO
 
+// segura mais um pouco a cena do Adão com as nuvens antes de soltar o pin
+// e revelar o footer logo abaixo (não anima nada, só estende o scroll)
+const SEGURAR_FINAL_DURACAO = 0.6
+const DURACAO_TOTAL_SCROLL = DURACAO_TOTAL + SEGURAR_FINAL_DURACAO
+
 const cena = {
   elevacao: ELEVACAO_INICIAL,
   guinada: { esquerda: 0, centro: 0, direita: 0 },
@@ -474,7 +479,7 @@ function PilotoCard({ foto, bandeira, pais, nome, sobrenome }) {
   )
 }
 
-function Corrida() {
+function Corrida({ redbullAnchorRef }) {
   const corridaRef = useRef(null)
   const textoRef = useRef(null)
   const pilotosRef = useRef(null)
@@ -547,7 +552,7 @@ function Corrida() {
         scrollTrigger: {
           trigger: corridaRef.current,
           start: 'top top',
-          end: `+=${Math.round(300 * DURACAO_TOTAL)}%`,
+          end: `+=${Math.round(300 * DURACAO_TOTAL_SCROLL)}%`,
           scrub: 0.6,
           pin: true,
           anticipatePin: 1,
@@ -944,6 +949,7 @@ function Corrida() {
           galeriaListaRef={galeriaListaRef}
           cortinaFrenteRef={cortinaFrenteBrasilRef}
           entradaAdaoRef={entradaAdaoRef}
+          redbullAnchorRef={redbullAnchorRef}
         />
 
         <img ref={terraRef} className="cortina-imagem cortina-terra" src="/espaço/terra.webp" alt="Terra" />
