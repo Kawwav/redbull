@@ -95,7 +95,7 @@ function Adao({ entradaRef, redbullAnchorRef }) {
   return (
     <section className="adao-secao">
       <img
-        src="/adao/desenho.png"
+        src="/adao/fundo.png"
         alt=""
         className="adao-fundo"
         draggable={false}

@@ -3,7 +3,11 @@
 .brasil-cena {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  /* precisa ficar acima do .adao-redbull-modelo (z-index:30, fixed/global):
+     como .brasil-cena cria seu próprio stacking context, a cortina interna
+     (.brasil-cortina-frente) só consegue cobrir o modelo 3D se a cena
+     inteira estiver acima dele - por isso 31 e não 0 */
+  z-index: 31;
   opacity: 0; 
   overflow: hidden;
   pointer-events: none;

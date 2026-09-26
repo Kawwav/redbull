@@ -11,6 +11,8 @@ const ESCALA_FINAL = 1.4
 const AMORTECIMENTO_POSICAO = 3.2
 const AMORTECIMENTO_ESCALA = 2.6
 
+const DESLOCAMENTO_Y_FINAL = -0.6
+
 const AMPLITUDE_BALANCO_Y = 0.05
 const VELOCIDADE_BALANCO_Y = 0.8
 
@@ -83,7 +85,9 @@ function ModeloAdaoRedbull({ inicioRef, fimRef, progressoRef }) {
 
     if (inicio && fim) {
       const alvoX = gsap.utils.interpolate(inicio.x, fim.x, progresso)
-      const alvoY = gsap.utils.interpolate(inicio.y, fim.y, progresso)
+
+      const deslocamentoY = gsap.utils.interpolate(0, DESLOCAMENTO_Y_FINAL, progresso)
+      const alvoY = gsap.utils.interpolate(inicio.y, fim.y, progresso) + deslocamentoY
 
       grupoPosicaoRef.current.position.x = THREE.MathUtils.damp(
         grupoPosicaoRef.current.position.x,

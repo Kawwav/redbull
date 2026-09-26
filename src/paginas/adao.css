@@ -1,7 +1,6 @@
 .adao-secao {
   position: absolute;
   inset: 0;
-  z-index: 0;
   overflow: hidden;
 }
 
@@ -62,7 +61,6 @@
 }
 
 .adao-personagem-deus {
-  /* 2800px numa tela de 1920px de largura = 145.83vw */
   --deus-largura: 145.83vw;
   --deus-topo: 54.6%;
   --deus-esquerda: 78%;
@@ -71,6 +69,7 @@
   left: var(--deus-esquerda);
   width: var(--deus-largura);
   transform: translate(-50%, -50%);
+  z-index: 40;
 }
 
 .adao-nuvens {
