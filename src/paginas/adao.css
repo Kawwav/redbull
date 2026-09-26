@@ -1,0 +1,16 @@
+.adao-secao {
+  position: relative;
+  width: 100%;
+  height: 100svh;
+  overflow: hidden;
+  background: #002776;
+}
+
+.adao-fundo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/adao/desenho.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}

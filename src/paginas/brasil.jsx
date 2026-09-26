@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './brasil.css'
+import Adao from './adao.jsx'
 
 const PESSOAS = [
   { foto: '/brasil/pessoas/yndiara-asp.avif', nome: 'Yndiara', sobrenome: 'Asp', esporte: 'Skate' },
@@ -435,6 +436,8 @@ function Brasil({ brasilRef, galeriaListaRef }) {
               )}
             </div>
           )}
+
+          <Adao />
         </div>
       </div>
     </div>
