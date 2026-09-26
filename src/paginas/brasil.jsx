@@ -39,7 +39,7 @@ const PESSOAS = [
 
 const PESSOAS_POR_PAGINA = 15
 
-function Brasil({ brasilRef, galeriaListaRef }) {
+function Brasil({ brasilRef, galeriaListaRef, cortinaFrenteRef, entradaAdaoRef }) {
   const videoRef = useRef(null)
   const barraRef = useRef(null)
 
@@ -239,8 +239,13 @@ function Brasil({ brasilRef, galeriaListaRef }) {
 
   return (
     <div ref={brasilRef} className="brasil-cena">
-      <div className="brasil-fundo" />
-      <div className="brasil-scroll-viewport">
+      {/* Camada de trás: fica parada, escondida atrás da "cortina" do Brasil */}
+      <Adao entradaRef={entradaAdaoRef} />
+
+      {/* Camada da frente ("cortina"): desliza pra cima no final e revela o Adão */}
+      <div ref={cortinaFrenteRef} className="brasil-cortina-frente">
+        <div className="brasil-fundo" />
+        <div className="brasil-scroll-viewport">
         <div ref={galeriaListaRef} className="brasil-scroll-content">
           <div className="brasil-tela-inicial">
             <div ref={parallaxTextoRef} className="brasil-parallax">
@@ -436,8 +441,7 @@ function Brasil({ brasilRef, galeriaListaRef }) {
               )}
             </div>
           )}
-
-          <Adao />
+        </div>
         </div>
       </div>
     </div>

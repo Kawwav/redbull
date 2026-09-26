@@ -1,7 +1,7 @@
 .adao-secao {
-  position: relative;
-  width: 100%;
-  height: 100svh;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
 }
 
@@ -27,6 +27,13 @@
 }
 
 .adao-parallax {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.adao-entrada {
   position: absolute;
   inset: 0;
   pointer-events: none;

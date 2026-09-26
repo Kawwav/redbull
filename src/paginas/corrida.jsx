@@ -294,7 +294,12 @@ const DURACAO_TOTAL_SEM_GALERIA = NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * (
 const GALERIA_INICIO = DURACAO_TOTAL_SEM_GALERIA
 const GALERIA_DURACAO = 1.4
 
-const DURACAO_TOTAL = DURACAO_TOTAL_SEM_GALERIA + GALERIA_DURACAO
+// Depois da galeria, a "cortina" do Brasil (fundo + conteúdo rolado) desliza
+// pra cima e revela o Adão, que já estava parado atrás o tempo todo
+const CORTINA_ADAO_INICIO = GALERIA_INICIO + GALERIA_DURACAO
+const CORTINA_ADAO_DURACAO = 0.9
+
+const DURACAO_TOTAL = DURACAO_TOTAL_SEM_GALERIA + GALERIA_DURACAO + CORTINA_ADAO_DURACAO
 
 const cena = {
   elevacao: ELEVACAO_INICIAL,
@@ -484,6 +489,8 @@ function Corrida() {
   nuvensExtraRef.current = []
   const brasilRef = useRef(null)
   const galeriaListaRef = useRef(null)
+  const cortinaFrenteBrasilRef = useRef(null)
+  const entradaAdaoRef = useRef(null)
 
   const pistaDetalheWrapperRef = useRef(null)
 
@@ -810,6 +817,24 @@ function Corrida() {
         )
       }
 
+      if (cortinaFrenteBrasilRef.current) {
+        tl.to(
+          cortinaFrenteBrasilRef.current,
+          { yPercent: -100, ease: 'power2.inOut', duration: CORTINA_ADAO_DURACAO },
+          CORTINA_ADAO_INICIO
+        )
+      }
+
+      // assim que a cortina termina de subir e revela o Adão, dispara a
+      // animação de entrada dos personagens sozinha; ao passar por esse
+      // ponto de novo subindo o scroll, a mesma chamada reverte a animação,
+      // fazendo eles voltarem de onde vieram
+     tl.call(
+  () => entradaAdaoRef.current?.(tl.scrollTrigger?.direction),
+  [],
+  CORTINA_ADAO_INICIO + CORTINA_ADAO_DURACAO * 0.5
+)
+
       return () => {
         cena.elevacao = ELEVACAO_INICIAL
         cena.guinada.esquerda = 0
@@ -914,7 +939,12 @@ function Corrida() {
       </div>
 
       <div ref={cortinaRef} className="corrida-cortina">
-        <Brasil brasilRef={brasilRef} galeriaListaRef={galeriaListaRef} />
+        <Brasil
+          brasilRef={brasilRef}
+          galeriaListaRef={galeriaListaRef}
+          cortinaFrenteRef={cortinaFrenteBrasilRef}
+          entradaAdaoRef={entradaAdaoRef}
+        />
 
         <img ref={terraRef} className="cortina-imagem cortina-terra" src="/espaço/terra.webp" alt="Terra" />
         <img ref={nuvem1Ref} className="cortina-imagem cortina-nuvem1" src="/imagens/nuvem1.webp" alt="Nuvem" />

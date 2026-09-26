@@ -28,10 +28,55 @@ function ModeloRedbull(props) {
 
 useGLTF.preload('/3d/redbull_otimizado.glb')
 
-function Adao() {
+function Adao({ entradaRef }) {
   const parallaxAdaoRef = useRef(null)
   const parallaxRedbullRef = useRef(null)
   const parallaxDeusRef = useRef(null)
+
+  // wrappers usados só pra animação de entrada (o parallax do mouse continua
+  // rodando nos refs acima, por cima dessa animação)
+  const entradaAdaoElRef = useRef(null)
+  const entradaRedbullElRef = useRef(null)
+  const entradaDeusElRef = useRef(null)
+  const entradaTlRef = useRef(null)
+
+  // timeline pausada: progress 0 = tudo fora de tela (posição de partida),
+  // progress 1 = tudo no lugar. Toca pra frente ao descer e reverte ao subir
+  useEffect(() => {
+    const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } })
+    tl.fromTo(entradaAdaoElRef.current, { xPercent: -140 }, { xPercent: 0, duration: 1.8 }, 0)
+    tl.fromTo(entradaDeusElRef.current, { xPercent: 140 }, { xPercent: 0, duration: 1.8 }, 0.25)
+    tl.fromTo(entradaRedbullElRef.current, { yPercent: -160 }, { yPercent: 0, duration: 1.6 }, 0.5)
+    entradaTlRef.current = tl
+
+    return () => {
+      tl.kill()
+      entradaTlRef.current = null
+    }
+  }, [])
+
+  // expõe uma função que toca a entrada sozinha (sem depender do scroll pra
+  // animar), mas que o pai chama de novo, com a direção, quando o scroll
+  // volta, revertendo os personagens pra onde vieram
+  useEffect(() => {
+    if (!entradaRef) return
+
+    entradaRef.current = (direcao) => {
+      const tl = entradaTlRef.current
+      if (!tl) return
+
+      if (direcao === -1) {
+        tl.reverse()
+      } else {
+        tl.play()
+      }
+    }
+
+    return () => {
+      if (entradaRef.current) entradaRef.current = null
+    }
+  }, [entradaRef])
+
   useEffect(() => {
     const alvoAdao = parallaxAdaoRef.current
     const alvoRedbull = parallaxRedbullRef.current
@@ -79,45 +124,51 @@ function Adao() {
       />
 
       <div ref={parallaxAdaoRef} className="adao-parallax">
-        <img
-          src="/adao/adao.webp"
-          alt="Adão"
-          className="adao-personagem adao-personagem-adao"
-          draggable={false}
-        />
+        <div ref={entradaAdaoElRef} className="adao-entrada">
+          <img
+            src="/adao/adao.webp"
+            alt="Adão"
+            className="adao-personagem adao-personagem-adao"
+            draggable={false}
+          />
+        </div>
       </div>
 
       <div ref={parallaxRedbullRef} className="adao-parallax">
-        <div className="adao-personagem adao-personagem-redbull">
-          <Canvas
-            camera={{ fov: 35 }}
-            gl={{ alpha: true }}
-            dpr={[1, 2]}
-            style={{ pointerEvents: 'none' }}
-          >
-            <ambientLight intensity={5} />
-            <directionalLight position={[3, 5, 2]} intensity={2.5} />
-            <directionalLight position={[-3, 5, 2]} intensity={2.5} />
-            <directionalLight position={[3, -5, 2]} intensity={2} />
-            <directionalLight position={[-3, -5, 2]} intensity={2} />
-            <directionalLight position={[0, 0, 5]} intensity={2} />
-            <directionalLight position={[0, 0, -5]} intensity={2} />
-            <Suspense fallback={null}>
-              <Bounds fit clip observe margin={1.2}>
-                <ModeloRedbull />
-              </Bounds>
-            </Suspense>
-          </Canvas>
+        <div ref={entradaRedbullElRef} className="adao-entrada">
+          <div className="adao-personagem adao-personagem-redbull">
+            <Canvas
+              camera={{ fov: 35 }}
+              gl={{ alpha: true }}
+              dpr={[1, 2]}
+              style={{ pointerEvents: 'none' }}
+            >
+              <ambientLight intensity={5} />
+              <directionalLight position={[3, 5, 2]} intensity={2.5} />
+              <directionalLight position={[-3, 5, 2]} intensity={2.5} />
+              <directionalLight position={[3, -5, 2]} intensity={2} />
+              <directionalLight position={[-3, -5, 2]} intensity={2} />
+              <directionalLight position={[0, 0, 5]} intensity={2} />
+              <directionalLight position={[0, 0, -5]} intensity={2} />
+              <Suspense fallback={null}>
+                <Bounds fit clip observe margin={1.2}>
+                  <ModeloRedbull />
+                </Bounds>
+              </Suspense>
+            </Canvas>
+          </div>
         </div>
       </div>
 
       <div ref={parallaxDeusRef} className="adao-parallax">
-        <img
-          src="/adao/deus.webp"
-          alt="Deus"
-          className="adao-personagem adao-personagem-deus"
-          draggable={false}
-        />
+        <div ref={entradaDeusElRef} className="adao-entrada">
+          <img
+            src="/adao/deus.webp"
+            alt="Deus"
+            className="adao-personagem adao-personagem-deus"
+            draggable={false}
+          />
+        </div>
       </div>
     </section>
   )

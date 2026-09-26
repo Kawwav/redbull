@@ -15,7 +15,14 @@
   inset: 0;
   background:
     radial-gradient(circle at 50% 42%, rgba(4, 19, 235, 0.041), transparent 55%),
-    linear-gradient(160deg, #002776 0%, #012f52 45%, #ff000081 100%);
+    linear-gradient(160deg, #002776 0%, #012f52 45%, #ff4f4f 100%);
+}
+
+.brasil-cortina-frente {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  will-change: transform;
 }
 
 .brasil-conteudo {
