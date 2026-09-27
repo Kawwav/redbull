@@ -77,7 +77,7 @@ const HELICE_FALLBACK_TAMANHO = 0.22
 
 const QUEDA_CAN2_Y_INICIAL = POSICAO_Y_FINAL + 4.5
 const OFFSET_Y_CAN2 = 0.1
-const ROTACAO_Y_CAN2 = 0 
+const ROTACAO_Y_CAN2 = 8.5
 const LIMIAR_INICIO_QUEDA_CAN2 = 0.5 
 const SUAVIDADE_QUEDA_CAN2_POSICAO = 0.05
 const SUAVIDADE_QUEDA_CAN2_ESCALA = 0.06
@@ -96,7 +96,7 @@ const FATOR_ESCALA_CAN4 = 1
 const ESCALA_FINAL_CAN3 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN3
 const ESCALA_FINAL_CAN4 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN4
 
-const ROTACAO_Y_CAN3 = 16 
+const ROTACAO_Y_CAN3 = 7
 const ROTACAO_Y_CAN4 = 14 
 
 const OFFSET_Y_CAN3 = 0.08 
@@ -116,19 +116,20 @@ const FRACAO_ENTRADA_LATERAL = 0.45
 // distância (em unidades do mundo 3D) que os 3 cartões descem ao sumir
 const DISTANCIA_DESCIDA_CARTOES = 2.6
 
-// quanto subir a linha de corte inferior pra dentro do quadro (em unidades do
-// mundo 3D). 0 = corta exatamente na borda de baixo do quadro (padrão atual).
-// Aumente esse valor pra fazer o modelo sumir mais cedo, mais pra cima.
+
 const AJUSTE_LIMITE_INFERIOR_CARTAO = 0.22
 
-// --- latas novas que descem do teto pra dentro dos quadros, ocupando o
-// lugar das latas antigas quando a seta da direita é clicada ---
 const DISTANCIA_TETO_CARTOES = 2.6
 const SUAVIDADE_ENTRADA_TETO = 0.07
 
-const ROTACAO_Y_CAN5 = 0
-const ROTACAO_Y_CAN6 = 0
-const ROTACAO_Y_CAN7 = 0
+const ROTACAO_Y_CAN5 = 9
+const ROTACAO_Y_CAN6 = 10
+const ROTACAO_Y_CAN7 = 10
+
+// luz extra só pra essas 3 latas novas (can_5/6/7), pra elas não ficarem
+// mais escuras que as latas antigas na frente. Ajuste a intensidade aqui.
+const INTENSIDADE_LUZ_FRENTE_SUBSTITUTA = 2.4
+const POSICAO_LUZ_FRENTE_SUBSTITUTA = [0, 0.3, 1.8]
 
 function obterPosicaoElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorSaida) {
   const elemento = elementoRef?.current
@@ -552,13 +553,17 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoes
     grupoRef.current.position.y = QUEDA_CAN2_Y_INICIAL
 
     grupoRef.current.rotation.x = 0
-    grupoRef.current.rotation.y = ROTACAO_Y_CAN2
     grupoRef.current.rotation.z = 0
 
     if (grupoEscalaRef.current) {
       grupoEscalaRef.current.scale.setScalar(0)
     }
   }, [])
+
+  useEffect(() => {
+    if (!grupoRef.current) return
+    grupoRef.current.rotation.y = ROTACAO_Y_CAN2
+  }, [ROTACAO_Y_CAN2])
 
   useFrame((state) => {
     if (!grupoRef.current || !grupoEscalaRef.current) return
@@ -635,6 +640,15 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoes
         })
       }
     }
+
+    // --- ajuste ao vivo (sem F5) ---
+    // No console do navegador, digite algo como: window.__rotCan2 = 3.14
+    // pra girar a lata em tempo real e achar o ângulo certo. Quando achar,
+    // copie o valor final pra constante ROTACAO_Y_CAN2 lá em cima do arquivo
+    // e pode apagar essa linha e a checagem abaixo se quiser.
+    if (typeof window !== 'undefined' && window.__rotCan2 !== undefined) {
+      grupoRef.current.rotation.y = Number(window.__rotCan2)
+    }
   })
 
   return (
@@ -661,6 +675,7 @@ function LataLateral({
   sentidoEntrada,
   hoverRef,
   descidaCartoesRef,
+  chaveAjusteAoVivo,
 }) {
   const { scene } = useGLTF(caminhoModelo)
   const grupoRef = useRef(null)
@@ -772,6 +787,13 @@ function LataLateral({
     const fracaoAtual = grupoEscalaRef.current.scale.x
     const novaFracao = fracaoAtual + (fracaoAlvo - fracaoAtual) * SUAVIDADE_LATERAL_ESCALA
     grupoEscalaRef.current.scale.setScalar(novaFracao)
+
+    if (typeof window !== 'undefined' && chaveAjusteAoVivo) {
+      const valorAoVivo = window[`__${chaveAjusteAoVivo}`]
+      if (valorAoVivo !== undefined) {
+        grupoRef.current.rotation.y = Number(valorAoVivo)
+      }
+    }
   })
 
   return (
@@ -798,6 +820,7 @@ function LataSubstituta({
   rotacaoY,
   descidaCartoesRef,
   hoverRef,
+  chaveAjusteAoVivo,
 }) {
   const { scene } = useGLTF(caminhoModelo)
   const grupoRef = useRef(null)
@@ -879,10 +902,29 @@ function LataSubstituta({
         })
       }
     }
+
+    // --- ajuste ao vivo (sem F5) ---
+    // No console do navegador, digite algo como: window.__rotCan7 = 3.14
+    // (ou __rotCan5 / __rotCan6, dependendo da lata) pra girar em tempo real
+    // e achar o ângulo certo. Quando achar, copie o valor final pra
+    // constante ROTACAO_Y_CAN5 / CAN6 / CAN7 lá em cima do arquivo.
+    if (typeof window !== 'undefined' && chaveAjusteAoVivo) {
+      const valorAoVivo = window[`__${chaveAjusteAoVivo}`]
+      if (valorAoVivo !== undefined) {
+        grupoRef.current.rotation.y = Number(valorAoVivo)
+      }
+    }
   })
 
   return (
     <group ref={grupoRef}>
+      <pointLight
+        position={POSICAO_LUZ_FRENTE_SUBSTITUTA}
+        intensity={INTENSIDADE_LUZ_FRENTE_SUBSTITUTA}
+        distance={6}
+        decay={2}
+        color="#ffffff"
+      />
       <group ref={grupoGiroHoverRef}>
         <Center>
           <primitive object={scene} scale={escalaFinal} />
@@ -960,6 +1002,7 @@ function Lata3D({
             sentidoEntrada={-1}
             hoverRef={hoverCan3Ref}
             descidaCartoesRef={descidaCartoesRef}
+            chaveAjusteAoVivo="rotCan3"
           />
 
           <LataLateral
@@ -973,6 +1016,7 @@ function Lata3D({
             sentidoEntrada={1}
             hoverRef={hoverCan4Ref}
             descidaCartoesRef={descidaCartoesRef}
+            chaveAjusteAoVivo="rotCan4"
           />
 
           <LataSubstituta
@@ -983,6 +1027,7 @@ function Lata3D({
             rotacaoY={ROTACAO_Y_CAN5}
             descidaCartoesRef={descidaCartoesRef}
             hoverRef={hoverCan2Ref}
+            chaveAjusteAoVivo="rotCan5"
           />
 
           <LataSubstituta
@@ -993,6 +1038,7 @@ function Lata3D({
             rotacaoY={ROTACAO_Y_CAN6}
             descidaCartoesRef={descidaCartoesRef}
             hoverRef={hoverCan3Ref}
+            chaveAjusteAoVivo="rotCan6"
           />
 
           <LataSubstituta
@@ -1003,6 +1049,7 @@ function Lata3D({
             rotacaoY={ROTACAO_Y_CAN7}
             descidaCartoesRef={descidaCartoesRef}
             hoverRef={hoverCan4Ref}
+            chaveAjusteAoVivo="rotCan7"
           />
 
           <Environment preset="city" />

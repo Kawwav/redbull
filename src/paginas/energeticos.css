@@ -5,10 +5,11 @@
   width: 100%;
   background-color: #1a56db;
   background-image:
+    linear-gradient(to bottom, transparent 0%, transparent 80%, #4f9fe8 100%),
     radial-gradient(circle, rgba(0, 39, 118, 0.16) 1px, transparent 1px),
-    radial-gradient(circle at 50% 50%, #ffffff 0%, #bfd3f6 32%, #1a56db 68%, #002776 100%);
-  background-size: 26px 26px, cover;
-  background-repeat: repeat, no-repeat;
+    radial-gradient(circle at 50% 50%, #ffffff 0%, #bfd3f6 32%, #1a56db 68%, #4f9fe8 100%);
+  background-size: 100% 100%, 26px 26px, cover;
+  background-repeat: no-repeat, repeat, no-repeat;
 }
 
 .rolagem-quadro {
@@ -139,6 +140,19 @@
   transform: scale(0.96);
 }
 
+.seta-cartao.desativado,
+.seta-cartao:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.seta-cartao.desativado:hover,
+.seta-cartao:disabled:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: none;
+}
+
 .seta-cartao svg {
   width: 20px;
   height: 20px;
@@ -206,9 +220,6 @@
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
-/* Contorno: um anel fino que acompanha a borda do círculo de cor,
-   marcando exatamente onde a cor muda. Fica um pouco maior que o
-   preenchimento (::before) e anima em sincronia com ele. */
 .foto-polaroid::after {
   content: '';
   position: absolute;
@@ -227,9 +238,6 @@
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
-/* estrela giratória com gradiente que surge atrás do modelo 3D assim que
-   o fundo colorido termina de revelar (tons da mesma cor do card via --cor-hover,
-   nunca a cor idêntica à do fundo) */
 .estrela-fundo {
   position: absolute;
   top: 50%;

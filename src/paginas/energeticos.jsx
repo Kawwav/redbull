@@ -22,6 +22,18 @@ const CORES_CARTOES_NOVOS = {
 }
 const DURACAO_TROCA_COR_CARTAO = 0.9
 
+// nome de cada card: os das latas antigas e os das novas.
+const NOMES_CARTOES_ANTIGOS = {
+  central: 'Red Bull Energy',
+  esquerda: 'THE GREEN EDITION',
+  direita: 'Red Bull Red Edition',
+}
+const NOMES_CARTOES_NOVOS = {
+  central: 'THE RED EDITION',
+  esquerda: 'THE SUMMER EDITION',
+  direita: 'THE YELLOW EDITION',
+}
+
 function Energeticos({
   quadroRef,
   quadroEsquerdaRef,
@@ -196,7 +208,9 @@ function Energeticos({
                 <div className="estrela-fundo" />
               </div>
               <div className="legenda-cartao">
-                <span className="nome-lata">Red Bull Sugarfree</span>
+                <span className="nome-lata">
+                  {cartoesEscondidos ? NOMES_CARTOES_NOVOS.esquerda : NOMES_CARTOES_ANTIGOS.esquerda}
+                </span>
                 <span className="mais-cartao">+</span>
               </div>
             </div>
@@ -214,7 +228,9 @@ function Energeticos({
                 <div className="estrela-fundo" />
               </div>
               <div className="legenda-cartao">
-                <span className="nome-lata">Red Bull Red Edition</span>
+                <span className="nome-lata">
+                  {cartoesEscondidos ? NOMES_CARTOES_NOVOS.direita : NOMES_CARTOES_ANTIGOS.direita}
+                </span>
                 <span className="mais-cartao">+</span>
               </div>
             </div>
@@ -234,7 +250,9 @@ function Energeticos({
                 <div className="imagem-fundo" />
               </div>
               <div className="legenda-cartao">
-                <span className="nome-lata">Red Bull Energy</span>
+                <span className="nome-lata">
+                  {cartoesEscondidos ? NOMES_CARTOES_NOVOS.central : NOMES_CARTOES_ANTIGOS.central}
+                </span>
                 <span className="mais-cartao">+</span>
               </div>
             </div>
@@ -242,8 +260,9 @@ function Energeticos({
             <div className="navegacao-cartoes">
               <button
                 type="button"
-                className="seta-cartao seta-esquerda"
+                className={`seta-cartao seta-esquerda${!cartoesEscondidos ? ' desativado' : ''}`}
                 aria-label="Cartão anterior"
+                disabled={!cartoesEscondidos}
                 onClick={aoClicarSetaEsquerda}
               >
                 <svg viewBox="0 0 24 24">
@@ -252,8 +271,9 @@ function Energeticos({
               </button>
               <button
                 type="button"
-                className="seta-cartao seta-direita"
+                className={`seta-cartao seta-direita${cartoesEscondidos ? ' desativado' : ''}`}
                 aria-label="Próximo cartão"
+                disabled={cartoesEscondidos}
                 onClick={aoClicarSetaDireita}
               >
                 <svg viewBox="0 0 24 24">
