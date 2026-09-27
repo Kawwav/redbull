@@ -764,44 +764,62 @@ function Corrida({ redbullAnchorRef }) {
         )
       })
 
+      // as nuvens ficam por cima do Brasil (z-index maior, ver corrida.css)
+      // então a ordem certa é: 1) Brasil aparece atrás delas, 2) só depois,
+      // com ele já na tela, as nuvens se abrem pros lados revelando a cena
+      const CROSSFADE_BRASIL_INICIO = NUVENS_FIM
+      const NUVENS_SAIDA_LATERAL_INICIO = CROSSFADE_BRASIL_INICIO + BRASIL_TRANSICAO_DURACAO
+      const NUVENS_SAIDA_LATERAL_DURACAO = 0.5
+      const NUVENS_SAIDA_LATERAL_DISTANCIA = 160
+
       tl.to(
         terraRef.current,
         { opacity: 0, ease: 'none', duration: BRASIL_TRANSICAO_DURACAO },
-        NUVENS_FIM
+        CROSSFADE_BRASIL_INICIO
       )
       tl.fromTo(
         brasilRef.current,
         { opacity: 0 },
         { opacity: 1, ease: 'none', duration: BRASIL_TRANSICAO_DURACAO },
-        NUVENS_FIM
+        CROSSFADE_BRASIL_INICIO
       )
 
       tl.to(
         nuvem1Ref.current,
-        { ...NUVEM1_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
-        NUVENS_SAIDA_INICIO
+        { xPercent: -NUVENS_SAIDA_LATERAL_DISTANCIA, opacity: 1, ease: 'sine.in', duration: NUVENS_SAIDA_LATERAL_DURACAO },
+        NUVENS_SAIDA_LATERAL_INICIO
       )
       tl.to(
         nuvem2Ref.current,
-        { ...NUVEM2_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
-        NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * 0.1
+        { xPercent: -NUVENS_SAIDA_LATERAL_DISTANCIA, opacity: 1, ease: 'sine.in', duration: NUVENS_SAIDA_LATERAL_DURACAO },
+        NUVENS_SAIDA_LATERAL_INICIO
       )
       tl.to(
         nuvem3Ref.current,
-        { ...NUVEM3_FORA, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
-        NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * 0.2
+        { xPercent: NUVENS_SAIDA_LATERAL_DISTANCIA, opacity: 1, ease: 'sine.in', duration: NUVENS_SAIDA_LATERAL_DURACAO },
+        NUVENS_SAIDA_LATERAL_INICIO
       )
 
       NUVENS_EXTRA.forEach((nuvem, i) => {
         const el = nuvensExtraRef.current[i]
         if (!el) return
 
-        const { estadoInicial } = estadosNuvemExtra(nuvem.entrada)
+        // decide o lado pela posição da própria nuvem: quem tem "right"
+        // definido, ou está na metade direita da tela, sai pela direita
+        const lado =
+          nuvem.right !== undefined || parseFloat(nuvem.left ?? '0') >= 50
+            ? 'direita'
+            : 'esquerda'
 
         tl.to(
           el,
-          { ...estadoInicial, ease: 'sine.inOut', duration: NUVENS_SAIDA_DURACAO },
-          NUVENS_SAIDA_INICIO + NUVENS_SAIDA_DURACAO * nuvem.atraso
+          {
+            xPercent: lado === 'esquerda' ? -NUVENS_SAIDA_LATERAL_DISTANCIA : NUVENS_SAIDA_LATERAL_DISTANCIA,
+            opacity: 1,
+            ease: 'sine.in',
+            duration: NUVENS_SAIDA_LATERAL_DURACAO,
+          },
+          NUVENS_SAIDA_LATERAL_INICIO + NUVENS_SAIDA_LATERAL_DURACAO * nuvem.atraso * 0.3
         )
       })
 

@@ -440,7 +440,7 @@
 
 
 .cortina-nuvem1 {
-  z-index: 2;
+  z-index: 40;
   width: 26vw;
   max-width: 360px;
   min-width: 60%;
@@ -450,7 +450,7 @@
 }
 
 .cortina-nuvem2 {
-  z-index: 2;
+  z-index: 40;
   width: 17vw;
   max-width: 240px;
   min-width: 46%;
@@ -460,7 +460,7 @@
 }
 
 .cortina-nuvem3 {
-  z-index: 2;
+  z-index: 40;
   width: 20vw;
   max-width: 280px;
   min-width: 52%;
@@ -470,7 +470,7 @@
 }
 
 .cortina-nuvem-extra {
-  z-index: 2;
+  z-index: 40;
   will-change: transform, opacity;
 }
 
