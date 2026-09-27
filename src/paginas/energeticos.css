@@ -30,7 +30,7 @@
 }
 
 .coluna {
-  height: 420px;
+  height: 500px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -99,8 +99,8 @@
 
 .pilha-quadros {
   position: relative;
-  width: 420px;
-  height: 482px;
+  width: 520px;
+  height: 600px;
 }
 
 .navegacao-cartoes {
@@ -163,11 +163,11 @@
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
+  --cor-hover: #1a56db;
   transition: box-shadow 0.4s ease, transform 0.4s ease, background-color 0.4s ease;
 }
 
 .quadro-menu.pousou {
-  --cor-hover: #1a56db;
   box-shadow: 0 0 0 8px rgba(226, 35, 26, 0.18), 0 4px 18px rgba(0, 0, 0, 0.18);
   transform: scale(1.03);
   cursor: pointer;
@@ -181,7 +181,12 @@
   position: relative;
   flex: 1;
   width: 100%;
-  background: #fafafa;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      color-mix(in srgb, var(--cor-hover, #94a3b8) 28%, #fafafa),
+      color-mix(in srgb, var(--cor-hover, #94a3b8) 14%, #fafafa) 70%
+    );
   overflow: hidden;
 }
 
@@ -222,6 +227,54 @@
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
+/* estrela giratória com gradiente que surge atrás do modelo 3D assim que
+   o fundo colorido termina de revelar (tons da mesma cor do card via --cor-hover,
+   nunca a cor idêntica à do fundo) */
+.estrela-fundo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 95%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  clip-path: polygon(
+    50.00% 0.00%, 55.44% 29.72%, 75.00% 6.70%, 64.85% 35.15%,
+    93.30% 25.00%, 70.28% 44.56%, 100.00% 50.00%, 70.28% 55.44%,
+    93.30% 75.00%, 64.85% 64.85%, 75.00% 93.30%, 55.44% 70.28%,
+    50.00% 100.00%, 44.56% 70.28%, 25.00% 93.30%, 35.15% 64.85%,
+    6.70% 75.00%, 29.72% 55.44%, 0.00% 50.00%, 29.72% 44.56%,
+    6.70% 25.00%, 35.15% 35.15%, 25.00% 6.70%, 44.56% 29.72%
+  );
+  background: conic-gradient(
+    from 0deg,
+    color-mix(in srgb, var(--cor-hover, #1a56db) 55%, white),
+    color-mix(in srgb, var(--cor-hover, #1a56db) 88%, black) 25%,
+    color-mix(in srgb, var(--cor-hover, #1a56db) 55%, white) 50%,
+    color-mix(in srgb, var(--cor-hover, #1a56db) 88%, black) 75%,
+    color-mix(in srgb, var(--cor-hover, #1a56db) 55%, white)
+  );
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  animation: girar-estrela 9s linear infinite;
+  transition: opacity 0.4s ease;
+}
+
+.quadro-menu.pousou:hover .estrela-fundo,
+.quadro-secundario:hover .estrela-fundo {
+  opacity: 0.85;
+  transition: opacity 0.4s ease 0.3s;
+}
+
+@keyframes girar-estrela {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
 .legenda-cartao {
   flex-shrink: 0;
   height: 78px;
@@ -249,33 +302,6 @@
   font-size: 1.4rem;
   line-height: 1;
   color: #1a1a1a;
-}
-
-.cantor-imagem {
-  position: absolute;
-  z-index: 2;
-  width: 42%;
-  height: 42%;
-  object-fit: cover;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s ease;
-}
-
-.canto-superior-direito {
-  top: 0;
-  right: 0;
-  transform: translate(50%, -50%);
-}
-
-.canto-inferior-esquerdo {
-  bottom: 0;
-  left: 0;
-  transform: translate(-50%, 50%);
-}
-
-.quadro-menu.pousou:hover .cantor-imagem {
-  opacity: 1;
 }
 
 .quadro-secundario {

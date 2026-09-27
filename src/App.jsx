@@ -22,6 +22,7 @@ function App() {
   const hoverCan2Ref = useRef(false)
   const hoverCan3Ref = useRef(false)
   const hoverCan4Ref = useRef(false)
+  const descidaCartoesRef = useRef(0)
   const redbullRef = useRef(null)
 
   // modelo 3d do Adão viajando até o footer
@@ -66,6 +67,7 @@ function App() {
         hoverCan2Ref={hoverCan2Ref}
         hoverCan3Ref={hoverCan3Ref}
         hoverCan4Ref={hoverCan4Ref}
+        descidaCartoesRef={descidaCartoesRef}
       />
 
       <Corrida redbullAnchorRef={redbullAdaoInicioRef} />
@@ -89,6 +91,7 @@ function App() {
           hoverCan2Ref={hoverCan2Ref}
           hoverCan3Ref={hoverCan3Ref}
           hoverCan4Ref={hoverCan4Ref}
+          descidaCartoesRef={descidaCartoesRef}
         />
       )}
 

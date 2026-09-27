@@ -96,11 +96,11 @@ const FATOR_ESCALA_CAN4 = 1
 const ESCALA_FINAL_CAN3 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN3
 const ESCALA_FINAL_CAN4 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN4
 
-const ROTACAO_Y_CAN3 = 0 
-const ROTACAO_Y_CAN4 = 0 
+const ROTACAO_Y_CAN3 = 16 
+const ROTACAO_Y_CAN4 = 14 
 
-const OFFSET_Y_CAN3 = 0.08 // ajuste fino de altura dentro do quadrado esquerdo
-const OFFSET_Y_CAN4 = 0.08 // ajuste fino de altura dentro do quadrado direito
+const OFFSET_Y_CAN3 = 0.08 
+const OFFSET_Y_CAN4 = 0.08 
 
 
 const SUAVIDADE_LATERAL_POSICAO = 0.08
@@ -112,6 +112,23 @@ const INCLINACAO_TORTA_Z_LATERAL = -0.4
 const DURACAO_GIRO_HOVER_LATERAL = 0.9
 
 const FRACAO_ENTRADA_LATERAL = 0.45
+
+// distância (em unidades do mundo 3D) que os 3 cartões descem ao sumir
+const DISTANCIA_DESCIDA_CARTOES = 2.6
+
+// quanto subir a linha de corte inferior pra dentro do quadro (em unidades do
+// mundo 3D). 0 = corta exatamente na borda de baixo do quadro (padrão atual).
+// Aumente esse valor pra fazer o modelo sumir mais cedo, mais pra cima.
+const AJUSTE_LIMITE_INFERIOR_CARTAO = 0.22
+
+// --- latas novas que descem do teto pra dentro dos quadros, ocupando o
+// lugar das latas antigas quando a seta da direita é clicada ---
+const DISTANCIA_TETO_CARTOES = 2.6
+const SUAVIDADE_ENTRADA_TETO = 0.07
+
+const ROTACAO_Y_CAN5 = 0
+const ROTACAO_Y_CAN6 = 0
+const ROTACAO_Y_CAN7 = 0
 
 function obterPosicaoElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorSaida) {
   const elemento = elementoRef?.current
@@ -153,6 +170,74 @@ function obterLarguraElementoNoMundo(elementoRef, camera, size, raycaster, plano
   const xDireito = vetorAuxiliar.x
 
   return Math.abs(xDireito - xEsquerdo)
+}
+
+// Calcula os 4 limites (esquerda/direita/baixo/topo) do card no espaço 3D,
+// projetando os 4 cantos do retângulo real (DOM) no plano de profundidade.
+// Usado pra gerar planos de corte (clipping) que impedem qualquer coisa de
+// aparecer fora do card, não importa o tamanho ou a posição do objeto.
+function obterLimitesElementoNoMundo(elementoRef, camera, size, raycaster, plano, vetorAuxiliar) {
+  const elemento = elementoRef?.current
+  if (!elemento || !camera || !size) return null
+
+  const retangulo = elemento.getBoundingClientRect()
+  if (retangulo.width === 0 && retangulo.height === 0) return null
+
+  const cantos = [
+    [retangulo.left, retangulo.top],
+    [retangulo.right, retangulo.top],
+    [retangulo.left, retangulo.bottom],
+    [retangulo.right, retangulo.bottom],
+  ]
+
+  let esquerda = Infinity
+  let direita = -Infinity
+  let baixo = Infinity
+  let topo = -Infinity
+
+  for (const [px, py] of cantos) {
+    const ndcX = (px / size.width) * 2 - 1
+    const ndcY = -(py / size.height) * 2 + 1
+    raycaster.setFromCamera({ x: ndcX, y: ndcY }, camera)
+    if (!raycaster.ray.intersectPlane(plano, vetorAuxiliar)) return null
+    esquerda = Math.min(esquerda, vetorAuxiliar.x)
+    direita = Math.max(direita, vetorAuxiliar.x)
+    baixo = Math.min(baixo, vetorAuxiliar.y)
+    topo = Math.max(topo, vetorAuxiliar.y)
+  }
+
+  return { esquerda, direita, baixo, topo }
+}
+
+// Clona os materiais da cena e mantém 4 planos de corte (esquerda/direita/baixo/topo)
+// sincronizados com o retângulo do card no DOM, de forma que o modelo 3D nunca
+// apareça fora dos limites do quadro — como se o quadro fosse uma "janela".
+function useLimiteCartao(scene) {
+  const planosRef = useRef([
+    new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), // esquerda
+    new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0), // direita
+    new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), // baixo
+    new THREE.Plane(new THREE.Vector3(0, -1, 0), 0), // topo
+  ])
+
+  useEffect(() => {
+    scene.traverse((filho) => {
+      if (filho.isMesh && filho.material) {
+        filho.material = filho.material.clone()
+        filho.material.clippingPlanes = planosRef.current
+        filho.material.clipShadows = true
+      }
+    })
+  }, [scene])
+
+  return (limites) => {
+    if (!limites) return
+    const [esquerda, direita, baixo, topo] = planosRef.current
+    esquerda.constant = -limites.esquerda
+    direita.constant = limites.direita
+    baixo.constant = -limites.baixo
+    topo.constant = limites.topo
+  }
 }
 
 function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoProgressRef, quadroRef }) {
@@ -444,7 +529,7 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
   )
 }
 
-function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
+function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoesRef }) {
   const { scene } = useGLTF('/3d/can_2_blue.glb')
   const grupoRef = useRef(null)
   const grupoEscalaRef = useRef(null)
@@ -458,6 +543,8 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
     []
   )
   const alvoMundo = useMemo(() => new THREE.Vector3(), [])
+  const caixaAux = useMemo(() => new THREE.Vector3(), [])
+  const atualizarLimiteCartao = useLimiteCartao(scene)
 
   useEffect(() => {
     if (!grupoRef.current) return
@@ -492,10 +579,27 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef }) {
       alvoMundo
     )
 
+    const limitesCartao = obterLimitesElementoNoMundo(
+      quadroRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      caixaAux
+    )
+    if (limitesCartao) {
+      limitesCartao.baixo += AJUSTE_LIMITE_INFERIOR_CARTAO
+    }
+    atualizarLimiteCartao(limitesCartao)
+
     const alvoYPousado = posicaoQuadro ? posicaoQuadro.y + OFFSET_Y_CAN2 : POSICAO_Y_FINAL + OFFSET_Y_CAN2
     const alvoXPousado = posicaoQuadro ? posicaoQuadro.x : 0
 
-    const alvoY = gsap.utils.interpolate(QUEDA_CAN2_Y_INICIAL, alvoYPousado, progressoCan2)
+    const descida = descidaCartoesRef?.current ?? 0
+
+    const alvoY =
+      gsap.utils.interpolate(QUEDA_CAN2_Y_INICIAL, alvoYPousado, progressoCan2) -
+      DISTANCIA_DESCIDA_CARTOES * descida
     const alvoX = gsap.utils.interpolate(0, alvoXPousado, progressoCan2)
 
     grupoRef.current.position.x +=
@@ -556,6 +660,7 @@ function LataLateral({
   offsetY,
   sentidoEntrada,
   hoverRef,
+  descidaCartoesRef,
 }) {
   const { scene } = useGLTF(caminhoModelo)
   const grupoRef = useRef(null)
@@ -571,6 +676,8 @@ function LataLateral({
     []
   )
   const alvo = useMemo(() => new THREE.Vector3(), [])
+  const caixaAux = useMemo(() => new THREE.Vector3(), [])
+  const atualizarLimiteCartao = useLimiteCartao(scene)
 
   useEffect(() => {
     if (!grupoRef.current) return
@@ -593,6 +700,19 @@ function LataLateral({
       alvo
     )
 
+    const limitesCartao = obterLimitesElementoNoMundo(
+      elementoRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      caixaAux
+    )
+    if (limitesCartao) {
+      limitesCartao.baixo += AJUSTE_LIMITE_INFERIOR_CARTAO
+    }
+    atualizarLimiteCartao(limitesCartao)
+
     const retLateral = elementoRef?.current?.getBoundingClientRect()
     const retCentral = elementoCentralRef?.current?.getBoundingClientRect()
     const prontoParaComparar =
@@ -605,9 +725,11 @@ function LataLateral({
 
     const avancando = progressoRevelacao > progressoAnteriorRef.current
 
+    const descida = descidaCartoesRef?.current ?? 0
+
     if (posicaoMundo) {
       const alvoX = posicaoMundo.x
-      const alvoY = posicaoMundo.y + offsetY
+      const alvoY = posicaoMundo.y + offsetY - DISTANCIA_DESCIDA_CARTOES * descida
 
       if (livreDoCentro && !jaLivreRef.current && avancando) {
         const larguraCaixaMundo =
@@ -665,6 +787,111 @@ function LataLateral({
   )
 }
 
+// Lata nova que desce do teto pra dentro do quadro e ocupa o lugar da lata
+// antiga quando descidaCartoesRef vai de 0 -> 1 (seta direita). Quando o
+// valor volta de 1 -> 0 (seta esquerda), ela sobe de volta e some pelo teto.
+function LataSubstituta({
+  caminhoModelo,
+  elementoRef,
+  escalaFinal,
+  offsetY,
+  rotacaoY,
+  descidaCartoesRef,
+  hoverRef,
+}) {
+  const { scene } = useGLTF(caminhoModelo)
+  const grupoRef = useRef(null)
+  const grupoGiroHoverRef = useRef(null)
+  const hoverAnteriorRef = useRef(false)
+
+  const raycaster = useMemo(() => new THREE.Raycaster(), [])
+  const planoQueda = useMemo(
+    () => new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANO_PROFUNDIDADE_QUEDA),
+    []
+  )
+  const alvoMundo = useMemo(() => new THREE.Vector3(), [])
+  const caixaAux = useMemo(() => new THREE.Vector3(), [])
+  const atualizarLimiteCartao = useLimiteCartao(scene)
+
+  useEffect(() => {
+    if (!grupoRef.current) return
+    grupoRef.current.rotation.set(0, rotacaoY, 0)
+    // começa escondida lá em cima, acima do quadro, antes da 1ª medição real
+    grupoRef.current.position.set(0, POSICAO_Y_FINAL + offsetY + DISTANCIA_TETO_CARTOES, 0)
+  }, [rotacaoY, offsetY])
+
+  useFrame((state) => {
+    if (!grupoRef.current) return
+
+    const entrada = descidaCartoesRef?.current ?? 0
+
+    const posicaoQuadro = obterPosicaoElementoNoMundo(
+      elementoRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      alvoMundo
+    )
+
+    const limitesCartao = obterLimitesElementoNoMundo(
+      elementoRef,
+      state.camera,
+      state.size,
+      raycaster,
+      planoQueda,
+      caixaAux
+    )
+    if (limitesCartao) {
+      limitesCartao.baixo += AJUSTE_LIMITE_INFERIOR_CARTAO
+    }
+    atualizarLimiteCartao(limitesCartao)
+
+    const alvoX = posicaoQuadro ? posicaoQuadro.x : 0
+    const alvoY =
+      (posicaoQuadro ? posicaoQuadro.y : POSICAO_Y_FINAL) +
+      offsetY +
+      DISTANCIA_TETO_CARTOES * (1 - entrada)
+
+    grupoRef.current.position.x += (alvoX - grupoRef.current.position.x) * SUAVIDADE_ENTRADA_TETO
+    grupoRef.current.position.y += (alvoY - grupoRef.current.position.y) * SUAVIDADE_ENTRADA_TETO
+
+    const hoverAtual = hoverRef?.current ?? false
+    if (hoverAtual !== hoverAnteriorRef.current && grupoGiroHoverRef.current) {
+      hoverAnteriorRef.current = hoverAtual
+      gsap.killTweensOf(grupoGiroHoverRef.current.rotation)
+
+      if (hoverAtual) {
+        gsap.to(grupoGiroHoverRef.current.rotation, {
+          y: `+=${VOLTA_HOVER_LATERAL}`,
+          x: INCLINACAO_TORTA_X_LATERAL,
+          z: INCLINACAO_TORTA_Z_LATERAL,
+          duration: DURACAO_GIRO_HOVER_LATERAL,
+          ease: 'power2.inOut',
+        })
+      } else {
+        gsap.to(grupoGiroHoverRef.current.rotation, {
+          y: `-=${VOLTA_HOVER_LATERAL}`,
+          x: 0,
+          z: 0,
+          duration: DURACAO_GIRO_HOVER_LATERAL,
+          ease: 'power2.inOut',
+        })
+      }
+    }
+  })
+
+  return (
+    <group ref={grupoRef}>
+      <group ref={grupoGiroHoverRef}>
+        <Center>
+          <primitive object={scene} scale={escalaFinal} />
+        </Center>
+      </group>
+    </group>
+  )
+}
+
 function Lata3D({
   scrollProgressRef,
   energeticosProgressRef,
@@ -675,6 +902,7 @@ function Lata3D({
   hoverCan2Ref,
   hoverCan3Ref,
   hoverCan4Ref,
+  descidaCartoesRef,
 }) {
   const mouseRef = useRef({ x: 0, y: 0 })
   const progressoPadraoRef = useRef(0)
@@ -693,7 +921,7 @@ function Lata3D({
     <div className="modelo" style={{ pointerEvents: 'none' }}>
       <Canvas
         camera={{ position: [0, 0.15, 3.2], fov: 35 }}
-        gl={{ alpha: true, antialias: true }}
+        gl={{ alpha: true, antialias: true, localClippingEnabled: true }}
         style={{ background: 'transparent', pointerEvents: 'none' }}
       >
         <ambientLight intensity={0.7} />
@@ -718,6 +946,7 @@ function Lata3D({
             energeticosProgressRef={energeticosProgressRef}
             hoverCan2Ref={hoverCan2Ref}
             quadroRef={quadroRef}
+            descidaCartoesRef={descidaCartoesRef}
           />
 
           <LataLateral
@@ -730,6 +959,7 @@ function Lata3D({
             offsetY={OFFSET_Y_CAN3}
             sentidoEntrada={-1}
             hoverRef={hoverCan3Ref}
+            descidaCartoesRef={descidaCartoesRef}
           />
 
           <LataLateral
@@ -741,6 +971,37 @@ function Lata3D({
             rotacaoYFrente={ROTACAO_Y_CAN4}
             offsetY={OFFSET_Y_CAN4}
             sentidoEntrada={1}
+            hoverRef={hoverCan4Ref}
+            descidaCartoesRef={descidaCartoesRef}
+          />
+
+          <LataSubstituta
+            caminhoModelo="/3d/can_5_red.glb"
+            elementoRef={quadroRef}
+            escalaFinal={ESCALA_FINAL_CAN2}
+            offsetY={OFFSET_Y_CAN2}
+            rotacaoY={ROTACAO_Y_CAN5}
+            descidaCartoesRef={descidaCartoesRef}
+            hoverRef={hoverCan2Ref}
+          />
+
+          <LataSubstituta
+            caminhoModelo="/3d/can_6_summer.glb"
+            elementoRef={quadroEsquerdaRef}
+            escalaFinal={ESCALA_FINAL_CAN3}
+            offsetY={OFFSET_Y_CAN3}
+            rotacaoY={ROTACAO_Y_CAN6}
+            descidaCartoesRef={descidaCartoesRef}
+            hoverRef={hoverCan3Ref}
+          />
+
+          <LataSubstituta
+            caminhoModelo="/3d/can_7_yellow.glb"
+            elementoRef={quadroDireitaRef}
+            escalaFinal={ESCALA_FINAL_CAN4}
+            offsetY={OFFSET_Y_CAN4}
+            rotacaoY={ROTACAO_Y_CAN7}
+            descidaCartoesRef={descidaCartoesRef}
             hoverRef={hoverCan4Ref}
           />
 
@@ -756,5 +1017,8 @@ useGLTF.preload('/3d/can_2_blue.glb')
 useGLTF.preload('/3d/aviao.glb')
 useGLTF.preload('/3d/can_3_green.glb')
 useGLTF.preload('/3d/can_4_peach.glb')
+useGLTF.preload('/3d/can_5_red.glb')
+useGLTF.preload('/3d/can_6_summer.glb')
+useGLTF.preload('/3d/can_7_yellow.glb')
 
 export default Lata3D

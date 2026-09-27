@@ -8,6 +8,20 @@ gsap.registerPlugin(ScrollTrigger)
 
 const FASE_QUEDA_FIM = 0.55
 
+// cor de fundo (--cor-hover) de cada card: a das latas antigas e a das novas
+// que entram pelo teto. Ajuste os hex aqui se quiser outras cores.
+const CORES_CARTOES_ANTIGOS = {
+  central: '#1a56db', // can_2_blue
+  esquerda: '#2f9e44', // can_3_green
+  direita: '#ffb385', // can_4_peach
+}
+const CORES_CARTOES_NOVOS = {
+  central: '#c81c14', // can_5_red
+  esquerda: '#f2b134', // can_6_summer
+  direita: '#ffd60a', // can_7_yellow
+}
+const DURACAO_TROCA_COR_CARTAO = 0.9
+
 function Energeticos({
   quadroRef,
   quadroEsquerdaRef,
@@ -17,6 +31,7 @@ function Energeticos({
   hoverCan2Ref,
   hoverCan3Ref,
   hoverCan4Ref,
+  descidaCartoesRef,
 }) {
   const rolagemRef = useRef(null)
   const pinRef = useRef(null)
@@ -25,6 +40,7 @@ function Energeticos({
   const colunaDireitaRef = useRef(null)
   const [pousou, setPousou] = useState(false)
   const [revelado, setRevelado] = useState(false)
+  const [cartoesEscondidos, setCartoesEscondidos] = useState(false)
 
   useGSAP(
     () => {
@@ -99,6 +115,53 @@ function Energeticos({
     gsap.fromTo(botaoRef.current, { scale: 0.94 }, { scale: 1, duration: 0.35, ease: 'back.out(3)' })
   }
 
+  const animarCoresCartoes = (paraNovas) => {
+    const cores = paraNovas ? CORES_CARTOES_NOVOS : CORES_CARTOES_ANTIGOS
+    if (quadroRef.current) {
+      gsap.to(quadroRef.current, {
+        '--cor-hover': cores.central,
+        duration: DURACAO_TROCA_COR_CARTAO,
+        ease: 'power2.inOut',
+      })
+    }
+    if (quadroEsquerdaRef.current) {
+      gsap.to(quadroEsquerdaRef.current, {
+        '--cor-hover': cores.esquerda,
+        duration: DURACAO_TROCA_COR_CARTAO,
+        ease: 'power2.inOut',
+      })
+    }
+    if (quadroDireitaRef.current) {
+      gsap.to(quadroDireitaRef.current, {
+        '--cor-hover': cores.direita,
+        duration: DURACAO_TROCA_COR_CARTAO,
+        ease: 'power2.inOut',
+      })
+    }
+  }
+
+  const aoClicarSetaDireita = () => {
+    if (!descidaCartoesRef || cartoesEscondidos) return
+    setCartoesEscondidos(true)
+    gsap.to(descidaCartoesRef, {
+      current: 1,
+      duration: 0.9,
+      ease: 'power2.in',
+    })
+    animarCoresCartoes(true)
+  }
+
+  const aoClicarSetaEsquerda = () => {
+    if (!descidaCartoesRef || !cartoesEscondidos) return
+    setCartoesEscondidos(false)
+    gsap.to(descidaCartoesRef, {
+      current: 0,
+      duration: 0.9,
+      ease: 'power2.out',
+    })
+    animarCoresCartoes(false)
+  }
+
   return (
     <section className="energeticos">
       <div ref={rolagemRef} className="rolagem-quadro">
@@ -129,7 +192,9 @@ function Energeticos({
                 if (hoverCan3Ref) hoverCan3Ref.current = false
               }}
             >
-              <div className="foto-polaroid" />
+              <div className="foto-polaroid">
+                <div className="estrela-fundo" />
+              </div>
               <div className="legenda-cartao">
                 <span className="nome-lata">Red Bull Sugarfree</span>
                 <span className="mais-cartao">+</span>
@@ -145,7 +210,9 @@ function Energeticos({
                 if (hoverCan4Ref) hoverCan4Ref.current = false
               }}
             >
-              <div className="foto-polaroid" />
+              <div className="foto-polaroid">
+                <div className="estrela-fundo" />
+              </div>
               <div className="legenda-cartao">
                 <span className="nome-lata">Red Bull Red Edition</span>
                 <span className="mais-cartao">+</span>
@@ -163,18 +230,8 @@ function Energeticos({
               }}
             >
               <div className="foto-polaroid">
-                <div className="camada-hover">
-                  <img
-                    src=""
-                    alt=""
-                    className="cantor-imagem canto-superior-direito"
-                  />
-                  <img
-                    src=""
-                    alt=""
-                    className="cantor-imagem canto-inferior-esquerdo"
-                  />
-                </div>
+                <div className="estrela-fundo" />
+                <div className="imagem-fundo" />
               </div>
               <div className="legenda-cartao">
                 <span className="nome-lata">Red Bull Energy</span>
@@ -187,6 +244,7 @@ function Energeticos({
                 type="button"
                 className="seta-cartao seta-esquerda"
                 aria-label="Cartão anterior"
+                onClick={aoClicarSetaEsquerda}
               >
                 <svg viewBox="0 0 24 24">
                   <path d="M15 18l-6-6 6-6" />
@@ -196,6 +254,7 @@ function Energeticos({
                 type="button"
                 className="seta-cartao seta-direita"
                 aria-label="Próximo cartão"
+                onClick={aoClicarSetaDireita}
               >
                 <svg viewBox="0 0 24 24">
                   <path d="M9 18l6-6-6-6" />

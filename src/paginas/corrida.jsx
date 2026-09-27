@@ -499,6 +499,10 @@ function Corrida({ redbullAnchorRef }) {
 
   const pistaDetalheWrapperRef = useRef(null)
 
+  const carroEntradaEsquerdaRef = useRef(null)
+  const carroEntradaCentroRef = useRef(null)
+  const carroEntradaDireitaRef = useRef(null)
+
   const [carrosVisiveis, setCarrosVisiveis] = useState({ esquerda: true, centro: true, direita: true })
   const [pistaVisivel, setPistaVisivel] = useState(true)
   const visibilidadeCortinaRef = useRef({ esquerda: true, centro: true, direita: true, pista: true })
@@ -531,6 +535,34 @@ function Corrida({ redbullAnchorRef }) {
     window.addEventListener('mousemove', aoMoverMouseNuvens)
     return () => window.removeEventListener('mousemove', aoMoverMouseNuvens)
   }, [])
+
+  useGSAP(
+    () => {
+      if (!corridaRef.current) return
+      if (!carroEntradaDireitaRef.current || !carroEntradaCentroRef.current || !carroEntradaEsquerdaRef.current) return
+
+      // entrada dos carros: vêm da esquerda e param na posição final, em sequência
+      // (redbull -> ferrari -> mclaren), cada um começando um pouco antes do anterior terminar
+      gsap.set(
+        [carroEntradaDireitaRef.current, carroEntradaCentroRef.current, carroEntradaEsquerdaRef.current],
+        { x: '-130vw' }
+      )
+
+      const tlEntradaCarros = gsap.timeline({
+        scrollTrigger: {
+          trigger: corridaRef.current,
+          start: 'top 85%',
+          once: true,
+        },
+      })
+
+      tlEntradaCarros
+        .to(carroEntradaDireitaRef.current, { x: 0, duration: 1.1, ease: 'power3.out' })
+        .to(carroEntradaCentroRef.current, { x: 0, duration: 1.1, ease: 'power3.out' }, '-=0.75')
+        .to(carroEntradaEsquerdaRef.current, { x: 0, duration: 1.1, ease: 'power3.out' }, '-=0.75')
+    },
+    { scope: corridaRef }
+  )
 
   useGSAP(
     () => {
@@ -896,63 +928,69 @@ function Corrida({ redbullAnchorRef }) {
       </div>
 
       <div className="carro-modelo">
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
-          style={{ background: 'transparent' }}
-          frameloop={carrosVisiveis.esquerda ? 'always' : 'demand'}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="esquerda" />
+        <div ref={carroEntradaEsquerdaRef} className="carro-entrada">
+          <Canvas
+            dpr={[1, 1.5]}
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
+            style={{ background: 'transparent' }}
+            frameloop={carrosVisiveis.esquerda ? 'always' : 'demand'}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="esquerda" />
 
-          <Suspense fallback={null}>
-            <Carro visivel={carrosVisiveis.esquerda} />
-            <Environment preset="city" resolution={128} />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <Carro visivel={carrosVisiveis.esquerda} />
+              <Environment preset="city" resolution={128} />
+            </Suspense>
+          </Canvas>
+        </div>
       </div>
 
       <div className="carro-modelo-centro">
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
-          style={{ background: 'transparent' }}
-          frameloop={carrosVisiveis.centro ? 'always' : 'demand'}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="centro" />
+        <div ref={carroEntradaCentroRef} className="carro-entrada">
+          <Canvas
+            dpr={[1, 1.5]}
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
+            style={{ background: 'transparent' }}
+            frameloop={carrosVisiveis.centro ? 'always' : 'demand'}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="centro" />
 
-          <Suspense fallback={null}>
-            <Ferrari visivel={carrosVisiveis.centro} />
-            <Environment preset="city" resolution={128} />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <Ferrari visivel={carrosVisiveis.centro} />
+              <Environment preset="city" resolution={128} />
+            </Suspense>
+          </Canvas>
+        </div>
       </div>
 
       <div className="carro-modelo-direita">
-        <Canvas
-          dpr={[1, 1.5]}
-          camera={{ position: [6, 0.6, 0], fov: 28 }}
-          gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
-          style={{ background: 'transparent' }}
-          frameloop={carrosVisiveis.direita ? 'always' : 'demand'}
-        >
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[3, 4, 5]} intensity={1.4} />
-          <directionalLight position={[-3, 1, -4]} intensity={0.5} />
-          <CameraRig id="direita" />
+        <div ref={carroEntradaDireitaRef} className="carro-entrada">
+          <Canvas
+            dpr={[1, 1.5]}
+            camera={{ position: [6, 0.6, 0], fov: 28 }}
+            gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
+            style={{ background: 'transparent' }}
+            frameloop={carrosVisiveis.direita ? 'always' : 'demand'}
+          >
+            <ambientLight intensity={0.8} />
+            <directionalLight position={[3, 4, 5]} intensity={1.4} />
+            <directionalLight position={[-3, 1, -4]} intensity={0.5} />
+            <CameraRig id="direita" />
 
-          <Suspense fallback={null}>
-            <RedBullCarro visivel={carrosVisiveis.direita} />
-            <Environment preset="city" resolution={128} />
-          </Suspense>
-        </Canvas>
+            <Suspense fallback={null}>
+              <RedBullCarro visivel={carrosVisiveis.direita} />
+              <Environment preset="city" resolution={128} />
+            </Suspense>
+          </Canvas>
+        </div>
       </div>
 
       <div ref={pilotosRef} className="pilotos">
