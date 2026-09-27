@@ -4,34 +4,29 @@
   position: relative;
   width: 100%;
   background:
-    radial-gradient(ellipse 900px 520px at 12% -12%, rgba(226, 35, 26, 0.45), transparent 60%),
-    radial-gradient(ellipse 1000px 620px at 92% 8%, rgba(46, 110, 255, 0.4), transparent 62%),
-    radial-gradient(ellipse 1100px 700px at 50% 118%, rgba(0, 39, 118, 0.75), transparent 68%),
-    conic-gradient(from 200deg at 50% -10%, rgba(255, 255, 255, 0.05), transparent 35%),
-    linear-gradient(180deg, #04040a 0%, #090f2b 32%, #0c1b55 62%, #002776 100%);
-  background-blend-mode: screen, screen, normal, overlay, normal;
+    radial-gradient(ellipse 1200px 500px at 50% -15%, rgba(255, 255, 255, 0.55), transparent 60%),
+    linear-gradient(180deg, #2d7dd2 0%, #5aa9e6 22%, #8ecae6 46%, #bfe3f5 70%, #eaf6ff 100%);
+  background-blend-mode: screen, normal;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   color: #ffffff;
   padding: 4rem 6% 2rem;
   z-index: 1;
   overflow: visible;
+  margin-top: -5px;
 }
 
-/* textura sutil de grão sobre o gradiente, pra tirar a aparência "chapada"
-   do fundo e dar profundidade sem pesar no visual */
 .footer::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.07;
+  opacity: 0.04;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 160px 160px;
 }
 
-/* linha de brilho fina separando o topo do footer do conteúdo acima */
 .footer::after {
   content: '';
   position: absolute;
@@ -64,6 +59,46 @@
   user-select: none;
 }
 
+.footer-desenhos {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.footer-desenho {
+  position: absolute;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes footer-desenho-atravessar {
+  from {
+    transform: translateX(120vw);
+  }
+  to {
+    transform: translateX(-120vw);
+  }
+}
+
+@keyframes footer-desenho-atravessar-inverso {
+  from {
+    transform: translateX(-120vw);
+  }
+  to {
+    transform: translateX(120vw);
+  }
+}
+
 
 .footer-top {
   position: relative;
@@ -89,15 +124,49 @@
 }
 
 .footer-nav-principal a {
+  position: relative;
+  display: inline-block;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.footer-nav-principal .footer-nav-texto {
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer-nav-principal .footer-nav-texto span:nth-of-type(1) {
+  display: block;
   font-family: 'Anton', 'Arial Narrow', sans-serif;
   font-size: clamp(1.6rem, 2.6vw, 2.15rem);
   color: #ffffff;
-  text-decoration: none;
-  transition: color 0.2s ease;
+  transform: translateY(0%) rotate(0.001deg);
+  transition: all 0.5s cubic-bezier(0.7, 0, 0.3, 1);
+  transition-delay: -0.05s;
 }
 
-.footer-nav-principal a:hover {
-  color: #e2231a;
+.footer-nav-principal .footer-nav-texto-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
+  color: #ffffff;
+  transform: translateY(140%) rotate(10deg);
+  transition: all 0.5s cubic-bezier(0.7, 0, 0.3, 1);
+  transition-delay: 0s;
+}
+
+.footer-nav-principal a:hover .footer-nav-texto span:nth-of-type(1) {
+  transform: translateY(-140%) rotate(-10deg);
+  transition-delay: 0s;
+}
+
+.footer-nav-principal a:hover .footer-nav-texto-hover {
+  transform: translateY(0%) rotate(0.001deg);
+  transition-delay: -0.05s;
 }
 
 .footer-listas-secundarias {
@@ -128,14 +197,10 @@
   color: #e2231a;
 }
 
-/* container das redes sociais: precisa de position:relative pra a caixa
-   de hover se posicionar/mover dentro dele */
 .footer-lista-redes {
   position: relative;
 }
 
-/* caixa fixa: aparece/some e segue o mouse, mas NÃO se move na troca de
-   imagem (mesma técnica do trabalhos.css) */
 .footer-rede-hover-caixa {
   position: absolute;
   top: 0;
@@ -158,9 +223,6 @@
   transform: translate(-50%, calc(-100% - 22px)) scale(1);
 }
 
-/* imagens dentro da caixa: só elas sobem/descem na troca de rede social,
-   sem fade - só deslizam, escondidas pelo overflow:hidden da caixa
-   quando estão fora da posição final */
 .footer-rede-hover-imagem {
   position: absolute;
   inset: 10px;
@@ -267,5 +329,9 @@
 
   .footer-nuvem {
     width: 46vw !important;
+  }
+
+  .footer-desenho {
+    width: 26vw !important;
   }
 }

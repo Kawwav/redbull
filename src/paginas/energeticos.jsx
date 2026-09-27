@@ -8,8 +8,7 @@ gsap.registerPlugin(ScrollTrigger)
 
 const FASE_QUEDA_FIM = 0.55
 
-// cor de fundo (--cor-hover) de cada card: a das latas antigas e a das novas
-// que entram pelo teto. Ajuste os hex aqui se quiser outras cores.
+
 const CORES_CARTOES_ANTIGOS = {
   central: '#1a56db', // can_2_blue
   esquerda: '#2f9e44', // can_3_green
@@ -22,7 +21,6 @@ const CORES_CARTOES_NOVOS = {
 }
 const DURACAO_TROCA_COR_CARTAO = 0.9
 
-// nome de cada card: os das latas antigas e os das novas.
 const NOMES_CARTOES_ANTIGOS = {
   central: 'Red Bull Energy',
   esquerda: 'THE GREEN EDITION',
@@ -93,7 +91,6 @@ function Energeticos({
             if (hoverCan4Ref) hoverCan4Ref.current = false
           }
 
-          // textos: esquerda sai pra esquerda, direita sai pra direita
           gsap.set(colunaEsquerdaRef.current, {
             xPercent: progressoRevelacao * -130,
             opacity: 1 - progressoRevelacao,

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useLayoutEffect } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import './brasil.css'
@@ -39,6 +39,9 @@ const PESSOAS = [
 
 const PESSOAS_POR_PAGINA = 15
 
+// raio (em px) do círculo que revela a bandeira da Red Bull ao passar o mouse
+const RAIO_REVELACAO_BANDEIRA = 110
+
 function Brasil({ brasilRef, galeriaListaRef, cortinaFrenteRef, entradaAdaoRef, redbullAnchorRef }) {
   const videoRef = useRef(null)
   const barraRef = useRef(null)
@@ -62,13 +65,62 @@ function Brasil({ brasilRef, galeriaListaRef, cortinaFrenteRef, entradaAdaoRef, 
   const temMaisPessoas = quantidadeVisivel < PESSOAS.length
   const podeMostrarMenos = quantidadeVisivel > PESSOAS_POR_PAGINA
 
+  const pessoaRefs = useRef([])
+  const quantidadeAnteriorRef = useRef(PESSOAS_POR_PAGINA)
+  const animandoRef = useRef(false)
+
   const aoCarregarMais = () => {
+    if (animandoRef.current) return
     setQuantidadeVisivel((atual) => Math.min(PESSOAS.length, atual + PESSOAS_POR_PAGINA))
   }
 
   const aoMostrarMenos = () => {
-    setQuantidadeVisivel(PESSOAS_POR_PAGINA)
+    if (animandoRef.current) return
+
+    const elementosSumindo = pessoaRefs.current
+      .slice(PESSOAS_POR_PAGINA, quantidadeVisivel)
+      .filter(Boolean)
+
+    if (elementosSumindo.length === 0) {
+      setQuantidadeVisivel(PESSOAS_POR_PAGINA)
+      return
+    }
+
+    animandoRef.current = true
+
+    gsap.to(elementosSumindo, {
+      scale: 0,
+      opacity: 0,
+      duration: 0.45,
+      ease: 'power2.in',
+      stagger: { each: 0.045, from: 'end' },
+      onComplete: () => {
+        quantidadeAnteriorRef.current = PESSOAS_POR_PAGINA
+        animandoRef.current = false
+        setQuantidadeVisivel(PESSOAS_POR_PAGINA)
+      },
+    })
   }
+
+  useLayoutEffect(() => {
+    const anterior = quantidadeAnteriorRef.current
+    const atual = quantidadeVisivel
+
+    if (atual > anterior) {
+      const elementosNovos = pessoaRefs.current.slice(anterior, atual).filter(Boolean)
+
+      gsap.set(elementosNovos, { scale: 0, opacity: 0, transformOrigin: '50% 50%' })
+      gsap.to(elementosNovos, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.55,
+        ease: 'back.out(1.6)',
+        stagger: 0.05,
+      })
+    }
+
+    quantidadeAnteriorRef.current = atual
+  }, [quantidadeVisivel])
 
   useEffect(() => {
     const id = requestAnimationFrame(() => {
@@ -149,7 +201,7 @@ function Brasil({ brasilRef, galeriaListaRef, cortinaFrenteRef, entradaAdaoRef, 
   pos.y = e.clientY - rect.top
 
       gsap.to(pos, {
-        size: 180, 
+        size: RAIO_REVELACAO_BANDEIRA, 
         duration: 0.4,
         ease: 'power2.out',
         onUpdate: atualizarMascara,
@@ -367,7 +419,13 @@ function Brasil({ brasilRef, galeriaListaRef, cortinaFrenteRef, entradaAdaoRef, 
 
           <div className="brasil-galeria-lista">
             {pessoasVisiveis.map((pessoa, i) => (
-              <div className="brasil-pessoa" key={i}>
+              <div
+                className="brasil-pessoa"
+                key={i}
+                ref={(el) => {
+                  pessoaRefs.current[i] = el
+                }}
+              >
                 <div
                   className="brasil-pessoa-foto-wrap"
                   onMouseEnter={aoMoverNaFoto}

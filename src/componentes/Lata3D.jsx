@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF, Center, Environment } from '@react-three/drei'
 import gsap from 'gsap'
@@ -14,7 +14,7 @@ const ROTACAO_Y_INICIAL = ROTACAO_Y_FRENTE + Math.PI / 3 + Math.PI * 2
 const ESCALA_INICIAL = 5
 const ESCALA_FINAL = 7.5
 
-const POSICAO_Y_FINAL = -0.4
+const POSICAO_Y_FINAL = -0.16
 
 const AMPLITUDE_BALANCO_LATA_X = 0.035
 const AMPLITUDE_BALANCO_LATA_Y = 0.05
@@ -70,7 +70,7 @@ const OFFSET_ROTACAO_AVIAO = Math.PI / 2
 
 
 const EIXO_ROTACAO_HELICE = 'x'
-const VELOCIDADE_ROTACAO_HELICE = 18 // rad/s
+const VELOCIDADE_ROTACAO_HELICE = 18 
 
 const HELICE_FALLBACK_POSICAO = [-0.82, 0, 0]
 const HELICE_FALLBACK_TAMANHO = 0.22
@@ -106,14 +106,13 @@ const OFFSET_Y_CAN4 = 0.08
 const SUAVIDADE_LATERAL_POSICAO = 0.08
 const SUAVIDADE_LATERAL_ESCALA = 0.07
 
-const VOLTA_HOVER_LATERAL = Math.PI * 2 // 360°
+const VOLTA_HOVER_LATERAL = Math.PI * 2 
 const INCLINACAO_TORTA_X_LATERAL = 0.32
 const INCLINACAO_TORTA_Z_LATERAL = -0.4
 const DURACAO_GIRO_HOVER_LATERAL = 0.9
 
 const FRACAO_ENTRADA_LATERAL = 0.45
 
-// distância (em unidades do mundo 3D) que os 3 cartões descem ao sumir
 const DISTANCIA_DESCIDA_CARTOES = 2.6
 
 
@@ -210,9 +209,6 @@ function obterLimitesElementoNoMundo(elementoRef, camera, size, raycaster, plano
   return { esquerda, direita, baixo, topo }
 }
 
-// Clona os materiais da cena e mantém 4 planos de corte (esquerda/direita/baixo/topo)
-// sincronizados com o retângulo do card no DOM, de forma que o modelo 3D nunca
-// apareça fora dos limites do quadro — como se o quadro fosse uma "janela".
 function useLimiteCartao(scene) {
   const planosRef = useRef([
     new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), // esquerda
@@ -251,7 +247,8 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
   const [visivel, setVisivel] = useState(true)
   const escondidoRef = useRef(false)
 
-  // raycaster + plano reaproveitados a cada frame pra não recriar objetos no loop
+  const entrouRef = useRef(false)
+
   const raycaster = useMemo(() => new THREE.Raycaster(), [])
   const planoQueda = useMemo(
     () => new THREE.Plane(new THREE.Vector3(0, 0, 1), -PLANO_PROFUNDIDADE_QUEDA),
@@ -278,18 +275,27 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     return encontrou ? alvoQueda : null
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!grupoRef.current) return
 
     grupoRef.current.rotation.x = INCLINACAO_X
     grupoRef.current.rotation.y = ROTACAO_Y_INICIAL
     grupoRef.current.rotation.z = INCLINACAO_Z
 
+    grupoRef.current.position.y = -2.4
+    entrouRef.current = false
 
     gsap.fromTo(
       grupoRef.current.position,
       { y: -2.4 },
-      { y: POSICAO_Y_FINAL, duration: 1.4, ease: 'power3.out' }
+      {
+        y: POSICAO_Y_FINAL,
+        duration: 1.4,
+        ease: 'power3.out',
+        onComplete: () => {
+          entrouRef.current = true
+        },
+      }
     )
   }, [])
 
@@ -338,7 +344,6 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
           alvo.y + OFFSET_Y_POUSO,
           progressoQueda
         )
-        // depois de pousada, na 2ª fase ela continua descendo até sumir de vez
         const posicaoAlvoY = posicaoAlvoYPouso - AFUNDAMENTO_SUMIR * progressoSumir
 
         if (progressoQueda >= LIMIAR_TRAVAR_POUSO) {
@@ -354,7 +359,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
             (posicaoAlvoY - grupoRef.current.position.y) * SUAVIDADE_QUEDA_POSICAO
         }
       }
-    } else {
+    } else if (entrouRef.current) {
 
       grupoRef.current.position.x += (0 - grupoRef.current.position.x) * SUAVIDADE_QUEDA_POSICAO
       grupoRef.current.position.y +=
@@ -364,7 +369,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
     if (primitiveRef.current) {
       const escalaComeco = gsap.utils.interpolate(ESCALA_INICIAL, ESCALA_FINAL, progresso)
       const escalaAlvoPouso = gsap.utils.interpolate(escalaComeco, ESCALA_POUSO_NO_QUADRO, progressoQueda)
-      // na 2ª fase, além de descer, ela encolhe até sumir de vez
+
       const escalaAlvo = gsap.utils.interpolate(escalaAlvoPouso, 0, progressoSumir)
 
       let novaEscala
@@ -390,7 +395,7 @@ function Lata({ mouseRef, scrollProgressRef, energeticosProgressRef, revelacaoPr
 
     if (balancoRef.current) {
       const tempo = state.clock.getElapsedTime()
-      // o balanço ambiente diminui enquanto o mortal ou a queda acontecem, pra não tremer o giro
+
       const amortecimentoBalanco = 1 - Math.max(progressoMortal, progressoQueda) * 0.85
 
       balancoRef.current.rotation.x =
@@ -450,7 +455,7 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
         materiaisRef.current.push(filho.material)
       }
 
-      // só encontra algo se a hélice vier como peça separada no .glb
+
       if (/helic|propel|rotor|blade/i.test(filho.name)) {
         helicesRef.current.push(filho)
       }
@@ -499,7 +504,6 @@ function Aviao({ scrollProgressRef, energeticosProgressRef }) {
       peca.rotation[EIXO_ROTACAO_HELICE] += VELOCIDADE_ROTACAO_HELICE * delta
     })
 
-    // hélice "de mentira" enquanto o modelo não tem uma separada
     if (fallbackHeliceRef.current) {
       fallbackHeliceRef.current.rotation[EIXO_ROTACAO_HELICE] += VELOCIDADE_ROTACAO_HELICE * delta
       fallbackHeliceRef.current.children.forEach((malha) => {
@@ -547,7 +551,7 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoes
   const caixaAux = useMemo(() => new THREE.Vector3(), [])
   const atualizarLimiteCartao = useLimiteCartao(scene)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!grupoRef.current) return
 
     grupoRef.current.position.y = QUEDA_CAN2_Y_INICIAL
@@ -560,7 +564,7 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoes
     }
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!grupoRef.current) return
     grupoRef.current.rotation.y = ROTACAO_Y_CAN2
   }, [ROTACAO_Y_CAN2])
@@ -641,19 +645,14 @@ function Lata2({ energeticosProgressRef, hoverCan2Ref, quadroRef, descidaCartoes
       }
     }
 
-    // --- ajuste ao vivo (sem F5) ---
-    // No console do navegador, digite algo como: window.__rotCan2 = 3.14
-    // pra girar a lata em tempo real e achar o ângulo certo. Quando achar,
-    // copie o valor final pra constante ROTACAO_Y_CAN2 lá em cima do arquivo
-    // e pode apagar essa linha e a checagem abaixo se quiser.
     if (typeof window !== 'undefined' && window.__rotCan2 !== undefined) {
       grupoRef.current.rotation.y = Number(window.__rotCan2)
     }
   })
 
   return (
-    <group ref={grupoRef}>
-      <group ref={grupoEscalaRef}>
+    <group ref={grupoRef} position={[0, QUEDA_CAN2_Y_INICIAL, 0]}>
+      <group ref={grupoEscalaRef} scale={0}>
         <group ref={grupoGiroHoverRef}>
           <Center>
             <primitive object={scene} scale={ESCALA_FINAL_CAN2} />
@@ -694,7 +693,7 @@ function LataLateral({
   const caixaAux = useMemo(() => new THREE.Vector3(), [])
   const atualizarLimiteCartao = useLimiteCartao(scene)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!grupoRef.current) return
     grupoRef.current.rotation.set(0, rotacaoYFrente, 0)
     if (grupoEscalaRef.current) grupoEscalaRef.current.scale.setScalar(0)
@@ -797,8 +796,8 @@ function LataLateral({
   })
 
   return (
-    <group ref={grupoRef}>
-      <group ref={grupoEscalaRef}>
+    <group ref={grupoRef} rotation={[0, rotacaoYFrente, 0]}>
+      <group ref={grupoEscalaRef} scale={0}>
         <group ref={grupoGiroHoverRef}>
           <Center>
             <primitive object={scene} scale={escalaFinal} />
@@ -836,10 +835,10 @@ function LataSubstituta({
   const caixaAux = useMemo(() => new THREE.Vector3(), [])
   const atualizarLimiteCartao = useLimiteCartao(scene)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!grupoRef.current) return
     grupoRef.current.rotation.set(0, rotacaoY, 0)
-    // começa escondida lá em cima, acima do quadro, antes da 1ª medição real
+
     grupoRef.current.position.set(0, POSICAO_Y_FINAL + offsetY + DISTANCIA_TETO_CARTOES, 0)
   }, [rotacaoY, offsetY])
 
@@ -903,11 +902,6 @@ function LataSubstituta({
       }
     }
 
-    // --- ajuste ao vivo (sem F5) ---
-    // No console do navegador, digite algo como: window.__rotCan7 = 3.14
-    // (ou __rotCan5 / __rotCan6, dependendo da lata) pra girar em tempo real
-    // e achar o ângulo certo. Quando achar, copie o valor final pra
-    // constante ROTACAO_Y_CAN5 / CAN6 / CAN7 lá em cima do arquivo.
     if (typeof window !== 'undefined' && chaveAjusteAoVivo) {
       const valorAoVivo = window[`__${chaveAjusteAoVivo}`]
       if (valorAoVivo !== undefined) {
@@ -917,7 +911,11 @@ function LataSubstituta({
   })
 
   return (
-    <group ref={grupoRef}>
+    <group
+      ref={grupoRef}
+      position={[0, POSICAO_Y_FINAL + offsetY + DISTANCIA_TETO_CARTOES, 0]}
+      rotation={[0, rotacaoY, 0]}
+    >
       <pointLight
         position={POSICAO_LUZ_FRENTE_SUBSTITUTA}
         intensity={INTENSIDADE_LUZ_FRENTE_SUBSTITUTA}

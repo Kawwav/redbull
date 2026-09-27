@@ -127,7 +127,7 @@ function ModeloAdaoRedbull({ inicioRef, fimRef, progressoRef }) {
 
 function AdaoRedbull3D({ inicioRef, fimRef, progressoRef }) {
   return (
-    <div className="adao-redbull-modelo" style={{ pointerEvents: 'none' }}>
+    <div className="modelo3d" style={{ pointerEvents: 'none' }}>
       <Canvas
         camera={{ position: [0, 0.15, 3.2], fov: 35 }}
         gl={{ alpha: true, antialias: true }}

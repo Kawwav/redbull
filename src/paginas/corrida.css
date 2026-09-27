@@ -15,10 +15,12 @@
   bottom: 0;
   left: -70%;
   width: 240%;
-  height: 48%;
+  height: 145%;
   background: linear-gradient(180deg, #1a1235 0%, #0e1440 55%, #041b4d 100%);
   overflow: hidden;
   z-index: 1;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 .pista-detalhe-wrapper {
@@ -26,6 +28,8 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
+  contain: layout paint style;
+  will-change: opacity;
 }
 
 .pista-detalhe {
@@ -43,6 +47,7 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  contain: layout paint;
 }
 
 .pista-svg path {
@@ -112,6 +117,7 @@
   mix-blend-mode: screen;
   transform-origin: 50% 33%;
   animation: velocidade-zoom 0.5s linear infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes velocidade-zoom {
@@ -275,6 +281,7 @@
   z-index: 5;
   pointer-events: none;
   animation: correndo-esquerda 4.5s ease-in-out 0.8s infinite;
+  contain: layout paint style;
 }
 
 .carro-modelo canvas {
@@ -299,6 +306,7 @@
   z-index: 6;
   pointer-events: none;
   animation: correndo-centro 4.5s ease-in-out 1.6s infinite;
+  contain: layout paint style;
 }
 
 .carro-modelo-centro canvas {
@@ -317,6 +325,7 @@
   z-index: 5;
   pointer-events: none;
   animation: correndo-direita 4.5s ease-in-out 2.4s infinite;
+  contain: layout paint style;
 }
 
 .carro-modelo-direita canvas {

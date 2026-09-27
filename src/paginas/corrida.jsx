@@ -185,6 +185,7 @@ const DISTANCIA_CAMERA = Math.hypot(6, 0.6)
 
 const TOMBO_PISTA = 75
 const ALTURA_PISTA = '145%'
+const ESCALA_Y_PISTA_INICIAL = 48 / parseFloat(ALTURA_PISTA)
 
 const PISTA_CURVA = { meio: 0.4368, amplitude: 0.1533, comprimento: 0.6771, fase: 0.6 }
 
@@ -541,8 +542,6 @@ function Corrida({ redbullAnchorRef }) {
       if (!corridaRef.current) return
       if (!carroEntradaDireitaRef.current || !carroEntradaCentroRef.current || !carroEntradaEsquerdaRef.current) return
 
-      // entrada dos carros: vêm da esquerda e param na posição final, em sequência
-      // (redbull -> ferrari -> mclaren), cada um começando um pouco antes do anterior terminar
       gsap.set(
         [carroEntradaDireitaRef.current, carroEntradaCentroRef.current, carroEntradaEsquerdaRef.current],
         { x: '-130vw' }
@@ -686,10 +685,10 @@ function Corrida({ redbullAnchorRef }) {
 
       tl.fromTo(
         retangulo,
-        { rotationX: 0, height: '48%' },
+        { rotationX: 0, scaleY: ESCALA_Y_PISTA_INICIAL },
         {
           rotationX: TOMBO_PISTA,
-          height: ALTURA_PISTA,
+          scaleY: 1,
           ease: 'power2.inOut',
           force3D: true,
           duration: PISTA_DURACAO,
@@ -796,9 +795,6 @@ function Corrida({ redbullAnchorRef }) {
         )
       })
 
-      // as nuvens ficam por cima do Brasil (z-index maior, ver corrida.css)
-      // então a ordem certa é: 1) Brasil aparece atrás delas, 2) só depois,
-      // com ele já na tela, as nuvens se abrem pros lados revelando a cena
       const CROSSFADE_BRASIL_INICIO = NUVENS_FIM
       const NUVENS_SAIDA_LATERAL_INICIO = CROSSFADE_BRASIL_INICIO + BRASIL_TRANSICAO_DURACAO
       const NUVENS_SAIDA_LATERAL_DURACAO = 0.5
@@ -835,9 +831,6 @@ function Corrida({ redbullAnchorRef }) {
       NUVENS_EXTRA.forEach((nuvem, i) => {
         const el = nuvensExtraRef.current[i]
         if (!el) return
-
-        // decide o lado pela posição da própria nuvem: quem tem "right"
-        // definido, ou está na metade direita da tela, sai pela direita
         const lado =
           nuvem.right !== undefined || parseFloat(nuvem.left ?? '0') >= 50
             ? 'direita'
@@ -880,10 +873,6 @@ function Corrida({ redbullAnchorRef }) {
         )
       }
 
-      // assim que a cortina termina de subir e revela o Adão, dispara a
-      // animação de entrada dos personagens sozinha; ao passar por esse
-      // ponto de novo subindo o scroll, a mesma chamada reverte a animação,
-      // fazendo eles voltarem de onde vieram
      tl.call(
   () => entradaAdaoRef.current?.(tl.scrollTrigger?.direction),
   [],
@@ -930,7 +919,7 @@ function Corrida({ redbullAnchorRef }) {
       <div className="carro-modelo">
         <div ref={carroEntradaEsquerdaRef} className="carro-entrada">
           <Canvas
-            dpr={[1, 1.5]}
+            dpr={[1, 1.25]}
             camera={{ position: [6, 0.6, 0], fov: 28 }}
             gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
             style={{ background: 'transparent' }}
@@ -943,7 +932,7 @@ function Corrida({ redbullAnchorRef }) {
 
             <Suspense fallback={null}>
               <Carro visivel={carrosVisiveis.esquerda} />
-              <Environment preset="city" resolution={128} />
+              <Environment preset="city" resolution={64} />
             </Suspense>
           </Canvas>
         </div>
@@ -952,7 +941,7 @@ function Corrida({ redbullAnchorRef }) {
       <div className="carro-modelo-centro">
         <div ref={carroEntradaCentroRef} className="carro-entrada">
           <Canvas
-            dpr={[1, 1.5]}
+            dpr={[1, 1.25]}
             camera={{ position: [6, 0.6, 0], fov: 28 }}
             gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
             style={{ background: 'transparent' }}
@@ -965,7 +954,7 @@ function Corrida({ redbullAnchorRef }) {
 
             <Suspense fallback={null}>
               <Ferrari visivel={carrosVisiveis.centro} />
-              <Environment preset="city" resolution={128} />
+              <Environment preset="city" resolution={64} />
             </Suspense>
           </Canvas>
         </div>
@@ -974,7 +963,7 @@ function Corrida({ redbullAnchorRef }) {
       <div className="carro-modelo-direita">
         <div ref={carroEntradaDireitaRef} className="carro-entrada">
           <Canvas
-            dpr={[1, 1.5]}
+            dpr={[1, 1.25]}
             camera={{ position: [6, 0.6, 0], fov: 28 }}
             gl={{ alpha: true, antialias: false, powerPreference: 'high-performance' }}
             style={{ background: 'transparent' }}
@@ -987,7 +976,7 @@ function Corrida({ redbullAnchorRef }) {
 
             <Suspense fallback={null}>
               <RedBullCarro visivel={carrosVisiveis.direita} />
-              <Environment preset="city" resolution={128} />
+              <Environment preset="city" resolution={64} />
             </Suspense>
           </Canvas>
         </div>

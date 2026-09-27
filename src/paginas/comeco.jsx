@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useLayoutEffect, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
@@ -10,6 +10,11 @@ gsap.registerPlugin(ScrollTrigger)
 const LIMIAR_MOSTRAR_HEADER = 0.85
 const LIMIAR_SOMEM_IMAGENS = 0.3
 const LIMIAR_MOSTRAR_TEXTO = 0.5
+
+// quantos segundos antes do fim real do vídeo a troca pras imagens (touros/redbull)
+// já acontece — como as imagens são o mesmo quadro final do vídeo, trocar um
+// pouco antes (~3 frames a 24fps) evita o corte seco/travada perceptível
+const TEMPO_ANTECIPACAO_TROCA = 0.125
 function dividirEmLetras(texto) {
   const partes = []
   const palavras = texto.split(' ')
@@ -56,58 +61,68 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
   }, [mostrarLata])
 
   useEffect(() => {
+    const touros = new Image()
+    touros.src = '/imagens/touros.png'
+
+    const redbull = new Image()
+    redbull.src = '/imagens/redbull.png'
+
+    const videoCanto = document.createElement('video')
+    videoCanto.src = '/videos/download.mp4'
+    videoCanto.preload = 'auto'
+  }, [])
+
+  useEffect(() => {
     const video = videoRef.current
     if (!video) return
-
-    const acelerar = () => {
-      video.playbackRate = 1.6
-    }
 
     const congelarUltimoFrame = () => {
       video.pause()
       aoMostrarLata()
     }
 
-    // trava de segurança: se o navegador bloquear o autoplay, o arquivo
-    // falhar ao carregar, ou o evento "ended" simplesmente não disparar,
-    // o scroll não pode ficar travado pra sempre esperando o vídeo acabar
     const TEMPO_MAXIMO_ESPERA_MS = 8000
     const tempoSeguranca = setTimeout(congelarUltimoFrame, TEMPO_MAXIMO_ESPERA_MS)
 
-    const aoTerminar = () => {
+    let jaTrocou = false
+    const trocar = () => {
+      if (jaTrocou) return
+      jaTrocou = true
       clearTimeout(tempoSeguranca)
       congelarUltimoFrame()
     }
 
-    const aoDarErro = () => {
-      clearTimeout(tempoSeguranca)
-      congelarUltimoFrame()
+    const aoAtualizarTempo = () => {
+      if (!video.duration) return
+      if (video.currentTime >= video.duration - TEMPO_ANTECIPACAO_TROCA) {
+        trocar()
+      }
     }
 
-    video.addEventListener('loadedmetadata', acelerar)
-    video.addEventListener('ended', aoTerminar)
-    video.addEventListener('error', aoDarErro)
-    video.addEventListener('stalled', aoDarErro)
+    video.addEventListener('timeupdate', aoAtualizarTempo)
+    video.addEventListener('ended', trocar)
+    video.addEventListener('error', trocar)
+    video.addEventListener('stalled', trocar)
 
     return () => {
       clearTimeout(tempoSeguranca)
-      video.removeEventListener('loadedmetadata', acelerar)
-      video.removeEventListener('ended', aoTerminar)
-      video.removeEventListener('error', aoDarErro)
-      video.removeEventListener('stalled', aoDarErro)
+      video.removeEventListener('timeupdate', aoAtualizarTempo)
+      video.removeEventListener('ended', trocar)
+      video.removeEventListener('error', trocar)
+      video.removeEventListener('stalled', trocar)
     }
   }, [aoMostrarLata])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!mostrarLata) return
 
     const letras = [
       ...(textoRef.current?.querySelectorAll('.conteudo') ?? []),
       ...(textoLateralRef.current?.querySelectorAll('.conteudo') ?? []),
     ]
-    if (letras.length === 0) return
-
-    gsap.set(letras, { yPercent: 100, opacity: 0 })
+    if (letras.length > 0) {
+      gsap.set(letras, { yPercent: 100, opacity: 0 })
+    }
 
     if (videoCantoRef.current) {
       gsap.set(videoCantoRef.current, { xPercent: 150 })
@@ -126,7 +141,7 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
   }, [mostrarTexto, mostrarLata])
 
   useEffect(() => {
-    // sobe as letras uma a uma quando o scroll passa do limiar
+
     if (!mostrarLata) return
 
     const letrasTitulo = textoRef.current?.querySelectorAll('.conteudo') ?? []
@@ -142,7 +157,7 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
         duration: mostrarTexto ? 0.65 : 0.35,
         ease: mostrarTexto ? 'back.out(1.6)' : 'power2.in',
         stagger: {
-          amount: mostrarTexto ? 0.4 : 0.2, // tempo total da cascata, igual pros dois textos
+          amount: mostrarTexto ? 0.4 : 0.2, 
           from: 'start',
         },
         overwrite: true,
@@ -186,8 +201,6 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
         },
       })
 
-      // garante que o pin/scroll seja recalculado assim que o vídeo some
-      // e as novas seções (com imagens, textos e o vídeo de canto) entram no DOM
       ScrollTrigger.refresh()
     },
     { scope: scrollWrapperRef, dependencies: [mostrarLata, scrollProgressRef, redbullRef] }
@@ -208,6 +221,7 @@ function Comeco({ mostrarLata, aoMostrarLata, scrollProgressRef, redbullRef }) {
               ref={videoRef}
               className="video"
               src="/videos/fundo.mp4"
+              preload="auto"
               autoPlay
               muted
               playsInline

@@ -25,7 +25,6 @@ function App() {
   const descidaCartoesRef = useRef(0)
   const redbullRef = useRef(null)
 
-  // modelo 3d do Adão viajando até o footer
   const redbullAdaoInicioRef = useRef(null)
   const redbullAdaoAlvoFooterRef = useRef(null)
   const redbullAdaoProgressoRef = useRef(0)
@@ -36,7 +35,7 @@ function App() {
 
     const trigger = ScrollTrigger.create({
       trigger: alvo,
-      start: 'top bottom', // começa a "puxar" o modelo quando o footer entra na tela
+      start: 'top bottom', 
       end: 'top 30%', // termina quando o alvo já está perto do topo da tela
       scrub: 1,
       onUpdate: (self) => {
