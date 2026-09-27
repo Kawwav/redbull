@@ -2,28 +2,26 @@ import { useRef, useEffect } from 'react'
 import gsap from 'gsap'
 import './adao.css'
 
-// o modelo 3d do redbull não é mais renderizado aqui: essa div vira só uma
-// "âncora" (posição/tamanho na tela) que o canvas 3d global (AdaoRedbull3D,
-// montado lá no App.jsx) persegue via raycast, pra poder sair daqui e viajar
-// até o footer conforme o scroll
+
 function Adao({ entradaRef, redbullAnchorRef }) {
   const parallaxAdaoRef = useRef(null)
   const parallaxRedbullRef = useRef(null)
   const parallaxDeusRef = useRef(null)
 
-  // wrappers usados só pra animação de entrada (o parallax do mouse continua
-  // rodando nos refs acima, por cima dessa animação)
   const entradaAdaoElRef = useRef(null)
   const entradaRedbullElRef = useRef(null)
   const entradaDeusElRef = useRef(null)
   const entradaTlRef = useRef(null)
 
-  // timeline pausada: progress 0 = tudo fora de tela (posição de partida),
-  // progress 1 = tudo no lugar. Toca pra frente ao descer e reverte ao subir
   useEffect(() => {
     const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } })
     tl.fromTo(entradaAdaoElRef.current, { xPercent: -140 }, { xPercent: 0, duration: 1.8 }, 0)
-    tl.fromTo(entradaDeusElRef.current, { xPercent: 140 }, { xPercent: 0, duration: 1.8 }, 0.25)
+    tl.fromTo(
+      entradaDeusElRef.current,
+      { xPercent: 140, yPercent: -140 },
+      { xPercent: 0, yPercent: 0, duration: 1.8 },
+      0.25
+    )
     tl.fromTo(entradaRedbullElRef.current, { yPercent: -160 }, { yPercent: 0, duration: 1.6 }, 0.5)
     entradaTlRef.current = tl
 
@@ -32,10 +30,6 @@ function Adao({ entradaRef, redbullAnchorRef }) {
       entradaTlRef.current = null
     }
   }, [])
-
-  // expõe uma função que toca a entrada sozinha (sem depender do scroll pra
-  // animar), mas que o pai chama de novo, com a direção, quando o scroll
-  // volta, revertendo os personagens pra onde vieram
   useEffect(() => {
     if (!entradaRef) return
 

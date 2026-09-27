@@ -130,7 +130,10 @@ function Energeticos({
               }}
             >
               <div className="foto-polaroid" />
-              <p className="legenda-polaroid">Red Bull Sugarfree</p>
+              <div className="legenda-cartao">
+                <span className="nome-lata">Red Bull Sugarfree</span>
+                <span className="mais-cartao">+</span>
+              </div>
             </div>
             <div
               ref={quadroDireitaRef}
@@ -143,7 +146,10 @@ function Energeticos({
               }}
             >
               <div className="foto-polaroid" />
-              <p className="legenda-polaroid">Red Bull Red Edition</p>
+              <div className="legenda-cartao">
+                <span className="nome-lata">Red Bull Red Edition</span>
+                <span className="mais-cartao">+</span>
+              </div>
             </div>
             <div
               ref={quadroRef}
@@ -170,7 +176,31 @@ function Energeticos({
                   />
                 </div>
               </div>
-              <p className="legenda-polaroid">Red Bull Energy</p>
+              <div className="legenda-cartao">
+                <span className="nome-lata">Red Bull Energy</span>
+                <span className="mais-cartao">+</span>
+              </div>
+            </div>
+
+            <div className="navegacao-cartoes">
+              <button
+                type="button"
+                className="seta-cartao seta-esquerda"
+                aria-label="Cartão anterior"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="seta-cartao seta-direita"
+                aria-label="Próximo cartão"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -185,7 +215,7 @@ function Energeticos({
             </div>
 
             <button ref={botaoRef} className="botao-girar" onClick={aoClicarBotao}>
-              Girar Red Bull
+              Ver todos os Red Bulls
             </button>
           </div>
         </div>

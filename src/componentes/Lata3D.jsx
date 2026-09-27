@@ -39,7 +39,7 @@ const SUAVIDADE_QUEDA_POSICAO = 0.045
 const SUAVIDADE_QUEDA_ESCALA = 0.06
 const SUAVIDADE_POUSO_SUMIR = 0.025 
 const ESCALA_POUSO_NO_QUADRO = 6.2 
-const OFFSET_Y_POUSO = -0.19 
+const OFFSET_Y_POUSO = -0.11 
 const LIMIAR_TRAVAR_POUSO = 0.97 
 const LIMIAR_ESCALA_ESCONDER_CAN1 = 0.03 
 const INCLINACAO_POUSO_X = 0.16 
@@ -76,7 +76,7 @@ const HELICE_FALLBACK_POSICAO = [-0.82, 0, 0]
 const HELICE_FALLBACK_TAMANHO = 0.22
 
 const QUEDA_CAN2_Y_INICIAL = POSICAO_Y_FINAL + 4.5
-const OFFSET_Y_CAN2 = 0.02
+const OFFSET_Y_CAN2 = 0.1
 const ROTACAO_Y_CAN2 = 0 
 const LIMIAR_INICIO_QUEDA_CAN2 = 0.5 
 const SUAVIDADE_QUEDA_CAN2_POSICAO = 0.05
@@ -99,8 +99,8 @@ const ESCALA_FINAL_CAN4 = ESCALA_LATERAL_BASE * FATOR_ESCALA_CAN4
 const ROTACAO_Y_CAN3 = 0 
 const ROTACAO_Y_CAN4 = 0 
 
-const OFFSET_Y_CAN3 = 0 // ajuste fino de altura dentro do quadrado esquerdo
-const OFFSET_Y_CAN4 = 0 // ajuste fino de altura dentro do quadrado direito
+const OFFSET_Y_CAN3 = 0.08 // ajuste fino de altura dentro do quadrado esquerdo
+const OFFSET_Y_CAN4 = 0.08 // ajuste fino de altura dentro do quadrado direito
 
 
 const SUAVIDADE_LATERAL_POSICAO = 0.08

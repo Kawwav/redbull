@@ -3,9 +3,12 @@
 .energeticos {
   position: relative;
   width: 100%;
-  background-color: #ececec;
-  background-image: radial-gradient(circle, #c9c9c9 1px, transparent 1px);
-  background-size: 26px 26px;
+  background-color: #1a56db;
+  background-image:
+    radial-gradient(circle, rgba(0, 39, 118, 0.16) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, #ffffff 0%, #bfd3f6 32%, #1a56db 68%, #002776 100%);
+  background-size: 26px 26px, cover;
+  background-repeat: repeat, no-repeat;
 }
 
 .rolagem-quadro {
@@ -57,7 +60,7 @@
 .subtitulo {
   margin: 0.5em 0 0;
   font-size: 1rem;
-  color: #555;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .ingredientes h4,
@@ -65,7 +68,7 @@
   margin: 0 0 0.5em;
   font-size: 0.85rem;
   letter-spacing: 0.05em;
-  color: #333;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .ingredientes p,
@@ -73,7 +76,7 @@
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
-  color: #444;
+  color: rgba(255, 255, 255, 0.65);
   max-width: 320px;
 }
 
@@ -100,15 +103,62 @@
   height: 482px;
 }
 
+.navegacao-cartoes {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 1.4rem;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  pointer-events: auto;
+}
+
+.seta-cartao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.seta-cartao:hover {
+  background: #e2231a;
+  transform: scale(1.08);
+}
+
+.seta-cartao:active {
+  transform: scale(0.96);
+}
+
+.seta-cartao svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .quadro-menu {
   position: relative;
   z-index: 3;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border: 2px solid #1a1a1a;
-  border-radius: 18px;
+  border: 10px solid #fafafa;
+  border-radius: 26px;
   overflow: hidden; 
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
@@ -139,7 +189,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   background: var(--cor-hover, transparent);
   clip-path: circle(0% at var(--origem-x, 50%) var(--origem-y, 50%));
   transition: clip-path 1.2s cubic-bezier(0.22, 1, 0.36, 1);
@@ -151,20 +201,40 @@
   transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
 }
 
+/* Contorno: um anel fino que acompanha a borda do círculo de cor,
+   marcando exatamente onde a cor muda. Fica um pouco maior que o
+   preenchimento (::before) e anima em sincronia com ele. */
+.foto-polaroid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: transparent;
+  box-shadow: 0 0 0 2px #1a1a1a;
+  clip-path: circle(0% at var(--origem-x, 50%) var(--origem-y, 50%));
+  transition: clip-path 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.quadro-menu.pousou:hover .foto-polaroid::after,
+.quadro-secundario:hover .foto-polaroid::after {
+  clip-path: circle(calc(150% + 3px) at var(--origem-x, 50%) var(--origem-y, 50%));
+  transition: clip-path 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.2s;
+}
+
 .legenda-cartao {
   flex-shrink: 0;
-  height: 62px;
+  height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0 1.2rem;
-  background: #fff;
-  border-top: 2px solid #1a1a1a;
+  background: #fafafa;
 }
 
 .nome-lata {
-  font-family: 'Caveat', cursive;
+  font-family: 'Anton', 'Arial Narrow', sans-serif;
   font-size: clamp(1.3rem, 2vw, 1.6rem);
   font-weight: 700;
   color: #1a1a1a;
@@ -183,7 +253,7 @@
 
 .cantor-imagem {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   width: 42%;
   height: 42%;
   object-fit: cover;
@@ -214,10 +284,11 @@
   left: 0;
   width: 100%;
   height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border: 2px solid #1a1a1a;
-  border-radius: 18px;
+  border: 10px solid #fafafa;
+  border-radius: 26px;
   overflow: hidden;
   background: #fafafa;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
@@ -268,8 +339,8 @@
 
   .quadro-menu,
   .quadro-secundario {
-    border-radius: 6px;
-    padding: 5% 5% 16%;
+    border-width: 6px;
+    border-radius: 18px;
   }
 
   .legenda-polaroid {
@@ -280,5 +351,9 @@
     width: 240px;
     height: 240px;
     order: -1;
+  }
+
+  .navegacao-cartoes {
+    margin-top: 1rem;
   }
 }
